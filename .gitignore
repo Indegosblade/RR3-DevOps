@@ -1,0 +1,10 @@
+# IPAs — too large for git, hosted as GitHub Release attachments
+*.ipa
+
+# Game cache — 5.1GB, hosted externally
+Caches_ipastore.zip
+
+# Extracted binary working files
+Payload/
+RealRacing3_4k
+Info_4k.plist
