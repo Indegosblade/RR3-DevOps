@@ -23,33 +23,30 @@ Real Racing 3 was designed as an always-online free-to-play game. With EA's serv
 - A19 GPU has 4x the power this game was designed for, it barely breaks a sweat
 
 ### Dev Build (rr3_dev.ipa)
-All of the above plus 20 binary patches:
+All of the above plus 18 binary patches (every patch verified by disassembling all call sites):
 
-**Debug Mode Unlocked (5 patches)**
-- `isDebugModeEnabled`, `debugMode`, `isInternalTestMode`, `isAppDebuggable`, `isDebug` — all forced YES
-- Unlocks the developer cheat menu (MainMenuCheatScreen) and ImGui debug overlay
-- Access to 895 runtime tweakable variables via ShowDebugTweakables
+**Debug Mode Unlocked (3 patches)**
+- `isDebugModeEnabled` (14 callers, EA singleton), `isInternalTestMode`, `isAppDebuggable` — forced YES
+- Unlocks the developer cheat menu (MainMenuCheatScreen) with 29 categories and 150+ entries
+- Access to 895 runtime tweakable variables via ShowDebugTweakables and ImGui overlay
 
 **Ads Killed (4 patches)**
-- `isAdReady`, `isRewardedVideoReady`, `isInterstitialReady` — return NO
-- `adMobEnabled` — disabled entirely
-- No more phantom ad requests to dead servers
+- `isAdReady` (11 callers), `isRewardedVideoReady`, `isInterstitialReady` — return NO
+- `adMobEnabled` — disabled at EA's ad config singleton
+- All verified as IronSource/AppLovin mediation code, no framework collision
 
-**Anti-Tamper Disabled**
-- `checksumEnabled` — returns NO, allows save file editing
+**Other Stubs**
+- `checksumEnabled` — returns NO (IronSource analytics protobuf checksum)
+- `requestReview` — returns nil (EA wrapper for SKStoreReviewController, void method)
 
-**Popups Killed**
-- `requestReview` — returns nil (rate-this-app popup eliminated)
-- GDPR and ATT tracking popups — handled by the game's offline detection
-
-**Dead Server URLs Nulled (6 URLs)**
-- EA/Glu backend URLs nulled to prevent 30-second connection timeouts on launch
+**Dead Server URLs Rewritten (6 URLs)**
+- EA/Glu backend URLs rewritten to `127.0.0.1` for fast connection-refused (not nulled — nil NSURL crashes)
 - `director-int.sn.eamobile.com`, `director-stage.sn.eamobile.com`, `syn-dir.sn.eamobile.com`
 - `prod.geo.gluops.com`, `prod-rest.ccs.gluops.com`, `firemonkeys.com.au`
 
 **Other**
-- BuildType string changed from `PUBLIC` to `PRIVATE` (enables C++ side debug gates)
-- `debugMode` conditional branch (CBZ) NOP'd to force debug code execution
+- BuildType string: `PUBLIC` → `PRIVATE` (cosmetic logging label only — code uses integer enum for behavior)
+- `debugMode` CBZ → NOP (debug block messages nil global pointer — ObjC no-op)
 - maxFPS hardcoded to 60 (use the 4K build for 120)
 
 ## Cheat Menu
@@ -187,9 +184,11 @@ IPAs are built via Python script doing a zip-to-zip copy from the original IPA. 
 
 ## Known Issues
 
-- **GDPR/ATT popups** — we intentionally do NOT patch `gdprApplies` or `trackingAuthorizationStatus` because these selectors are shared with Apple's AppTrackingTransparency framework and ad SDK consent systems. Patching them crashes the app during ad SDK initialization. The popups may appear once but are harmless offline.
-- **Cheat menu visibility** — the MainMenuCheatScreen may not have an obvious button. Try the ImGui overlay in-race (tap the screen) or deep links in Safari: `rr3://RaceTeamsAdmin`
-- **Save file editing** — with `checksumEnabled` disabled, you can freely edit save files in Documents. The game won't validate checksums on load.
+- **GDPR/ATT popups** — we intentionally do NOT patch `gdprApplies` or `trackingAuthorizationStatus` because these selectors collide with Apple's AppTrackingTransparency framework and ad SDK consent systems (UMP, AppLovin, Facebook). Patching them crashes during ad SDK init. The popups may appear once but are harmless offline.
+- **`debugMode` and `isDebug` NOT patched** — binary analysis confirmed all 13 `debugMode` callers are IronSource/AppLovin/MAX/Tapjoy ad SDK init code, and `isDebug` is Facebook Audience Network. Forcing YES crashes the app during ad SDK initialization. The cheat menu works without these — `isDebugModeEnabled` is the actual gate.
+- **Some cheats are platform-gated** — a few cheat menu entries display "This cheat does not work on non windows/Android platforms" and won't function on iOS.
+- **Cheat menu visibility** — the MainMenuCheatScreen may not have an obvious button. Try the ImGui overlay in-race (tap screen corners), deep links in Safari (`rr3://RaceTeamsAdmin`), or the cheat menu's deep link text entry field.
+- **Save file editing** — `checksumEnabled` disables IronSource analytics checksums (not EA save checksums). EA save checksum behavior needs testing.
 
 ## Technical Details
 
