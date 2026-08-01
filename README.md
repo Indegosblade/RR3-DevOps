@@ -10,18 +10,18 @@ All builds are available as [GitHub Release](../../releases) attachments. You al
 
 | Build | Size | Description |
 |-------|------|-------------|
-| **rr3_4k_v1.ipa** | 1.31 GB | Full build — 120fps, 4K quality (EDS profile override), debug mode, all 18 patches. See below. |
+| **rr3_4k_v2.ipa** | 1.31 GB | Full build — 120fps, 4K quality (EDS profile override), debug mode, all 18 patches. See below. |
 
 ## What's Fixed
 
 Real Racing 3 was designed as an always-online free-to-play game. With EA's servers gone, the stock app hangs on connection timeouts, shows broken ad prompts, and runs at low quality on modern hardware. This project fixes all of that.
 
-### rr3_4k_v1.ipa — All-in-One Build
+### rr3_4k_v2.ipa — All-in-One Build
 
 All 18 binary patches (every patch verified by disassembling all call sites):
 
 **4K Visual Quality (EDS Profile Override)**
-- iPad Pro 12.9" (iPad6,8) quality profile injected as `iPhone18,2.plist` — exact device match for iPhone 17 Pro
+- iPad Pro 12.9" (iPad6,8) quality profile injected as `iPhone18,1.plist` — exact device match for iPhone 17 Pro
 - iPhone.plist fallback also replaced with iPad Pro profile as safety net
 - Enables all 15 quality capability flags: car ambient occlusion, planar reflections, HDR post-processing, real-time car shadow maps, PBR water, high-quality headlights, and more
 - See [EDS Quality Override](#eds-quality-override) for technical details
@@ -55,11 +55,11 @@ All 18 binary patches (every patch verified by disassembling all call sites):
 
 ## EDS Quality Override
 
-The game uses **Engine Device Settings** (EDS) — 41 encrypted plist files in `res/eds/` that control all visual quality flags per device model. The game looks up the device model string (e.g. `iPhone18,2`), searches for a matching `res/eds/{model}.plist`, and falls back to `iPhone.plist` if no match is found.
+The game uses **Engine Device Settings** (EDS) — 41 encrypted plist files in `res/eds/` that control all visual quality flags per device model. The game looks up the device model string (e.g. `iPhone18,1`), searches for a matching `res/eds/{model}.plist`, and falls back to `iPhone.plist` if no match is found.
 
-**The problem:** No `iPhone18,2.plist` exists in the stock IPA (the game predates iPhone 17 Pro), so it falls back to the conservative generic `iPhone.plist` profile.
+**The problem:** No `iPhone18,1.plist` exists in the stock IPA (the game predates iPhone 17 Pro), so it falls back to the conservative generic `iPhone.plist` profile.
 
-**The fix:** Copy the iPad Pro 12.9" profile (`iPad6,8.plist` — the highest-quality iOS profile at 6929 bytes) as `iPhone18,2.plist`. The game finds an exact device match and loads iPad Pro quality settings.
+**The fix:** Copy the iPad Pro 12.9" profile (`iPad6,8.plist` — the highest-quality iOS profile at 6929 bytes) as `iPhone18,1.plist`. The game finds an exact device match and loads iPad Pro quality settings.
 
 **Why it works:** All 41 EDS files share identical encryption (same 32-byte header, same keystream). The game decrypts them all the same way — no per-device key. Copying any encrypted profile and renaming it works without decrypting anything. This approach is validated by the Android modding community, who copy `AndroidXtraHigh.plist` to override device profiles.
 
