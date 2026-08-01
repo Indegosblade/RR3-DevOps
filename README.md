@@ -10,20 +10,25 @@ All builds are available as [GitHub Release](../../releases) attachments. You al
 
 | Build | Size | Description |
 |-------|------|-------------|
-| **rr3_4k.ipa** | 1.31 GB | 120fps / max quality. Stock game + maxFPS=120 patch. Confirmed working. |
-| **rr3_dev.ipa** | 1.31 GB | Developer build. 20 binary patches: debug mode, cheat menu, no ads, no popups, 60fps. See [Dev Build](#dev-build). |
+| **rr3_4k_v1.ipa** | 1.31 GB | Full build — 120fps, 4K quality (EDS profile override), debug mode, all 18 patches. See below. |
 
 ## What's Fixed
 
 Real Racing 3 was designed as an always-online free-to-play game. With EA's servers gone, the stock app hangs on connection timeouts, shows broken ad prompts, and runs at low quality on modern hardware. This project fixes all of that.
 
-### 4K Build (rr3_4k.ipa)
-- **120fps** — maxFPS uncapped from the stock 30/60 limit
-- Everything else stock — clean, simple, reliable
-- A19 GPU has 4x the power this game was designed for, it barely breaks a sweat
+### rr3_4k_v1.ipa — All-in-One Build
 
-### Dev Build (rr3_dev.ipa)
-All of the above plus 18 binary patches (every patch verified by disassembling all call sites):
+All 18 binary patches (every patch verified by disassembling all call sites):
+
+**4K Visual Quality (EDS Profile Override)**
+- iPad Pro 12.9" (iPad6,8) quality profile injected as `iPhone18,2.plist` — exact device match for iPhone 17 Pro
+- iPhone.plist fallback also replaced with iPad Pro profile as safety net
+- Enables all 15 quality capability flags: car ambient occlusion, planar reflections, HDR post-processing, real-time car shadow maps, PBR water, high-quality headlights, and more
+- See [EDS Quality Override](#eds-quality-override) for technical details
+
+**120fps**
+- maxFPS uncapped from the stock 30/60 limit
+- A19 GPU has 4x the power this game was designed for, it barely breaks a sweat
 
 **Debug Mode Unlocked (3 patches)**
 - `isDebugModeEnabled` (14 callers, EA singleton), `isInternalTestMode`, `isAppDebuggable` — forced YES
@@ -47,7 +52,36 @@ All of the above plus 18 binary patches (every patch verified by disassembling a
 **Other**
 - BuildType string: `PUBLIC` → `PRIVATE` (cosmetic logging label only — code uses integer enum for behavior)
 - `debugMode` CBZ → NOP (debug block messages nil global pointer — ObjC no-op)
-- maxFPS hardcoded to 60 (use the 4K build for 120)
+
+## EDS Quality Override
+
+The game uses **Engine Device Settings** (EDS) — 41 encrypted plist files in `res/eds/` that control all visual quality flags per device model. The game looks up the device model string (e.g. `iPhone18,2`), searches for a matching `res/eds/{model}.plist`, and falls back to `iPhone.plist` if no match is found.
+
+**The problem:** No `iPhone18,2.plist` exists in the stock IPA (the game predates iPhone 17 Pro), so it falls back to the conservative generic `iPhone.plist` profile.
+
+**The fix:** Copy the iPad Pro 12.9" profile (`iPad6,8.plist` — the highest-quality iOS profile at 6929 bytes) as `iPhone18,2.plist`. The game finds an exact device match and loads iPad Pro quality settings.
+
+**Why it works:** All 41 EDS files share identical encryption (same 32-byte header, same keystream). The game decrypts them all the same way — no per-device key. Copying any encrypted profile and renaming it works without decrypting anything. This approach is validated by the Android modding community, who copy `AndroidXtraHigh.plist` to override device profiles.
+
+**15 quality capability flags controlled by EDS:**
+
+| Flag | Effect |
+|------|--------|
+| USE_HIGH_QUALITY_HEADLIGHT | High-quality headlight rendering |
+| CAR_AMBIENT_OCCLUSION | Ambient occlusion on car models |
+| CAR_PLANAR_REFLECTION | Planar reflections on car surfaces |
+| ENV_MAP_DYNAMIC_BLUR | Dynamic environment map blur |
+| ENV_MAP_HDR | HDR environment maps |
+| GAMMA_CORRECTION | Gamma correction |
+| USE_HDR_POST_PROCESS | Full HDR post-processing pipeline |
+| USE_HDR_AUTOMATIC_EXPOSURE | Automatic HDR exposure |
+| PARTICLE_CAST_SHADOW | Particle effects cast shadows |
+| SKID_MARK_DEFERRED_LIGHTMAP | Deferred lightmap for skid marks |
+| USE_PBR_WATER | Physically-based water rendering |
+| USE_REALTIME_CAR_SHADOW_MAPS | Real-time car shadow maps |
+| LOW_LOD_TRACKS | Track LOD level (disabled = high LOD) |
+| LOW_MEMORY_LEMANS_HACK | Le Mans memory hack (disabled = full quality) |
+| SUPPORTS_BIG_TRACKS | Big track support |
 
 ## Cheat Menu
 
@@ -141,7 +175,7 @@ Custom joystick config: drop a `joystick_config.txt` in the app's Documents fold
 
 ### Steps
 
-1. **Download** the IPA you want from [Releases](../../releases)
+1. **Download** the IPA from [Releases](../../releases)
 2. **Sideload** with Sideloadly — connect your device, drag the IPA, sign with your Apple ID
 3. **Import cache** — the game needs its ~5.1 GB asset cache to run. Download `Caches_ipastore.zip` from Releases, unzip, and copy the contents into the app's Documents folder via Files app or 3uTools
 4. **Launch** — the game runs fully offline, no EA account needed
@@ -187,7 +221,8 @@ IPAs are built via Python script doing a zip-to-zip copy from the original IPA. 
 - **GDPR/ATT popups** — we intentionally do NOT patch `gdprApplies` or `trackingAuthorizationStatus` because these selectors collide with Apple's AppTrackingTransparency framework and ad SDK consent systems (UMP, AppLovin, Facebook). Patching them crashes during ad SDK init. The popups may appear once but are harmless offline.
 - **`debugMode` and `isDebug` NOT patched** — binary analysis confirmed all 13 `debugMode` callers are IronSource/AppLovin/MAX/Tapjoy ad SDK init code, and `isDebug` is Facebook Audience Network. Forcing YES crashes the app during ad SDK initialization. The cheat menu works without these — `isDebugModeEnabled` is the actual gate.
 - **Some cheats are platform-gated** — a few cheat menu entries display "This cheat does not work on non windows/Android platforms" and won't function on iOS.
-- **Cheat menu visibility** — the MainMenuCheatScreen may not have an obvious button. Try the ImGui overlay in-race (tap screen corners), deep links in Safari (`rr3://RaceTeamsAdmin`), or the cheat menu's deep link text entry field.
+- **Cheat menu visibility** — the MainMenuCheatScreen may not have an obvious button. Investigation ongoing (see [Issue #3](../../issues/3)).
+- **EDS quality — awaiting device confirmation** — the iPad Pro profile injection is built and sideloading. Visual quality improvement needs device verification (see [Issue #2](../../issues/2)).
 - **Save file editing** — `checksumEnabled` disables IronSource analytics checksums (not EA save checksums). EA save checksum behavior needs testing.
 
 ## Technical Details
