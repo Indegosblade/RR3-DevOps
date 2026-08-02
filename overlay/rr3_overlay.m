@@ -444,11 +444,13 @@ static void buildTweakIndex(void) {
         NSString *desc = g_tweakDescs[fullKey];
         NSString *pretty = prettyName(shortName);
 
+        float stockVal = readTweakFloat(entry);
         NSDictionary *info = @{
             @"i": @(i), @"name": name, @"short": pretty,
             @"cat": cat, @"type": @(type),
             @"desc": desc ?: @"",
             @"entry": [NSValue valueWithPointer:entry],
+            @"stock": @(stockVal),
         };
         NSMutableArray *arr = g_catEntries[cat];
         if (!arr) { arr = [NSMutableArray array]; g_catEntries[cat] = arr; }
@@ -722,20 +724,14 @@ static void dumpTweakables(void) {
 
 - (void)resetAll {
     for (NSDictionary *info in _items) {
-        uint8_t *entry = (uint8_t *)[(NSValue *)info[@"entry"] pointerValue];
         uint32_t type = [info[@"type"] unsignedIntValue];
         if (type == TW_STRING) continue;
-        float def;
-        switch (type) {
-            case TW_BOOL:   def = (float)*(uint8_t *)(entry + TW_OFF_DEF); break;
-            case TW_INT:    def = (float)*(int32_t *)(entry + TW_OFF_DEF); break;
-            case TW_FLOAT:  def = *(float *)(entry + TW_OFF_DEF); break;
-            case TW_DOUBLE: def = (float)*(double *)(entry + TW_OFF_DEF); break;
-            default: continue;
-        }
-        writeTweak(entry, def);
+        uint8_t *entry = (uint8_t *)[(NSValue *)info[@"entry"] pointerValue];
+        float stock = [info[@"stock"] floatValue];
+        writeTweak(entry, stock);
     }
     [_table reloadData];
+    showToast([NSString stringWithFormat:@"%@ reset to stock", _catKey], YES);
 }
 
 - (void)longPressed:(UILongPressGestureRecognizer *)gr {
@@ -837,6 +833,16 @@ static RR3MainMenu *g_mainMenu = nil;
         forControlEvents:UIControlEventTouchUpInside];
     [hdrBar addSubview:allOn];
 
+    UIButton *resetAll = [UIButton buttonWithType:UIButtonTypeSystem];
+    [resetAll setTitle:@"RESET ALL" forState:UIControlStateNormal];
+    [resetAll setTitleColor:[UIColor colorWithRed:1 green:0.4f blue:0.4f alpha:1]
+        forState:UIControlStateNormal];
+    resetAll.titleLabel.font = [UIFont boldSystemFontOfSize:11];
+    resetAll.translatesAutoresizingMaskIntoConstraints = NO;
+    [resetAll addTarget:self action:@selector(resetAllTweaks)
+        forControlEvents:UIControlEventTouchUpInside];
+    [hdrBar addSubview:resetAll];
+
     UIButton *closeBtn = [UIButton buttonWithType:UIButtonTypeSystem];
     [closeBtn setTitle:@"X" forState:UIControlStateNormal];
     [closeBtn setTitleColor:[UIColor colorWithWhite:0.6f alpha:1]
@@ -864,7 +870,9 @@ static RR3MainMenu *g_mainMenu = nil;
         [title.centerYAnchor constraintEqualToAnchor:hdrBar.centerYAnchor],
         [title.leadingAnchor constraintEqualToAnchor:hdrBar.leadingAnchor constant:14],
         [allOn.centerYAnchor constraintEqualToAnchor:hdrBar.centerYAnchor],
-        [allOn.centerXAnchor constraintEqualToAnchor:hdrBar.centerXAnchor],
+        [allOn.leadingAnchor constraintEqualToAnchor:title.trailingAnchor constant:10],
+        [resetAll.centerYAnchor constraintEqualToAnchor:hdrBar.centerYAnchor],
+        [resetAll.trailingAnchor constraintEqualToAnchor:closeBtn.leadingAnchor constant:-6],
         [closeBtn.centerYAnchor constraintEqualToAnchor:hdrBar.centerYAnchor],
         [closeBtn.trailingAnchor constraintEqualToAnchor:hdrBar.trailingAnchor constant:-10],
         [closeBtn.widthAnchor constraintEqualToConstant:30],
@@ -988,6 +996,24 @@ static RR3MainMenu *g_mainMenu = nil;
         withRowAnimation:UITableViewRowAnimationNone];
 }
 
+- (void)resetAllTweaks {
+    if (!g_catEntries) return;
+    int count = 0;
+    for (NSString *cat in g_categories) {
+        for (NSDictionary *info in g_catEntries[cat]) {
+            uint32_t type = [info[@"type"] unsignedIntValue];
+            if (type == TW_STRING) continue;
+            uint8_t *entry = (uint8_t *)[(NSValue *)info[@"entry"] pointerValue];
+            float stock = [info[@"stock"] floatValue];
+            writeTweak(entry, stock);
+            count++;
+        }
+    }
+    for (int i = 0; i < NUM_FLAGS; i++) *flagPtr(i) = 0;
+    [_table reloadData];
+    showToast([NSString stringWithFormat:@"Reset %d tweakables + flags to stock", count], YES);
+}
+
 - (void)closeTapped {
     [UIView animateWithDuration:0.2 animations:^{
         self.view.alpha = 0;
@@ -1012,6 +1038,8 @@ static RR3MainMenu *g_mainMenu = nil;
 @end
 
 #pragma mark - Floating Button
+
+static UIView *g_floatingBtn = nil;
 
 @interface RR3Btn : UIView
 @property (nonatomic, strong) RR3MainMenu *menu;
@@ -1066,6 +1094,19 @@ static RR3MainMenu *g_mainMenu = nil;
     else [_menu closeTapped];
 }
 
+- (void)tripleToggle {
+    if (self.hidden) {
+        self.hidden = NO;
+        self.alpha = 0;
+        [UIView animateWithDuration:0.2 animations:^{ self.alpha = 1; }];
+    } else {
+        if (!_menu.view.hidden) [_menu closeTapped];
+        [UIView animateWithDuration:0.2 animations:^{
+            self.alpha = 0;
+        } completion:^(BOOL d) { self.hidden = YES; }];
+    }
+}
+
 @end
 
 #pragma mark - Constructor
@@ -1116,5 +1157,11 @@ static void rr3_overlay_init(void) {
             initWithFrame:CGRectMake(sw - 60, sh / 3, 44, 44)];
         btn.menu = menu;
         [window addSubview:btn];
+        g_floatingBtn = btn;
+
+        UITapGestureRecognizer *tripleTap = [[UITapGestureRecognizer alloc]
+            initWithTarget:btn action:@selector(tripleToggle)];
+        tripleTap.numberOfTouchesRequired = 3;
+        [window addGestureRecognizer:tripleTap];
     });
 }
