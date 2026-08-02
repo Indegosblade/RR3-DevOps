@@ -11,7 +11,7 @@ Each component is published as a separate GitHub Release with full install instr
 | Release | Asset | Size | Description |
 |---------|-------|------|-------------|
 | [**v1.0-4k**](../../releases/tag/v1.0-4k) | `rr3_4k_v3.ipa` | 1.3 GB | Production build — 120fps, god-mode EDS quality, ads removed, dead URLs patched |
-| [**v1.0-overlay**](../../releases/tag/v1.0-overlay) | `rr3_overlay.dylib` | 90 KB | Debug overlay — inject via Sideloadly for in-game debug flag toggles |
+| [**v1.0-overlay**](../../releases/tag/v1.0-overlay) | `rr3_overlay.dylib` | 124 KB | Debug overlay v2 — live tweakable browser, 847 engine variables, write verification |
 | [**v1.0-cache**](../../releases/tag/v1.0-cache) | `Caches_ipastore.zip` (3 parts) | 5.1 GB | Game asset cache — required for offline play (tracks, cars, textures) |
 
 ## What's Patched
@@ -47,24 +47,30 @@ EA/Glu backend URLs rewritten to `127.0.0.1` for fast connection-refused on the 
 
 ## Debug Overlay
 
-The overlay dylib (`rr3_overlay.dylib`) is a floating debug panel that writes directly to BSS debug flag addresses at runtime. Inject it via Sideloadly's "Inject dylibs/frameworks" option.
+The overlay dylib (`rr3_overlay.dylib`) provides a floating debug panel and live tweakable variable browser. Inject via Sideloadly's "Inject dylibs/frameworks" option. See [`overlay/README.md`](overlay/README.md) for full documentation.
 
-**8 toggleable flags:** ImGui overlay, cheat menu, cheat screen, debug render, and 4 additional debug flags. See [`overlay/README.md`](overlay/README.md) for addresses and build instructions.
+### What it does
 
-## Developer Cheat Menu
+- **8 debug flag toggles** with descriptions — ImGui overlay, Cheat Menu (Unlock All, Free Currency, Max Level, Skip Tutorial), Debug Render (wireframes, collision, physics), and 5 subsystem flags
+- **Live tweakable browser** — reads ~847 engine variables from the BSS vector at runtime, groups into 15 categories (AI, Camera, Car, Render, Physics, etc.)
+- **Smart controls** — UISwitch for bools and bool-like ints, UISlider for numeric values. 20 negative patterns prevent numeric entries from getting toggles
+- **Write verification** — every change is read back through the live pointer and confirmed with a toast notification (green checkmark = verified, red = mismatch)
+- **Long-press info** — hold any tweakable to see its full name, type, current value, default, range, and memory address
+- **Per-category reset** — restores all values to compiled defaults
+- **Diagnostic dump** — writes `Documents/tweakable_dump.txt` at startup with all entries categorized
 
-The game binary contains EA Firemonkeys' internal developer cheat screen with 29 categories and 150+ entries, plus 895 runtime tweakable variables accessible through an ImGui overlay. Full documentation in [PATCHES.md](PATCHES.md).
+### Developer Cheat Menu
 
-**Current status:** Debug mode is confirmed active (debug HUD elements appear), but the cheat menu UI trigger mechanism has not been fully identified. The overlay dylib attempts to force-enable the relevant BSS flags. See [Issue #3](../../issues/3) for ongoing investigation.
+The game binary contains EA Firemonkeys' internal developer cheat screen with 29 categories and 150+ entries. The overlay force-enables the relevant BSS flags, but the ImGui UI requires keyboard/controller input to navigate — touch input is not wired to ImGui. See [Issue #3](../../issues/3).
 
-### What the cheat menu contains (from binary analysis)
+**Cheat menu contents (from binary analysis):**
 
 - **Unlock + Own Everything** — all cars, tracks, series
 - **Currency cheats** — R$, Gold, Motorsport dollars
 - **Debug race selector** — jump to any race directly
 - **AI control** — let AI drive your car
 - **Free camera** — 6DOF camera in race
-- **895 tweakable variables** — full engine config access (physics, rendering, audio, input, camera)
+- **847 tweakable variables** — full engine config access (physics, rendering, audio, input, camera)
 
 ## Setup
 
@@ -89,7 +95,9 @@ The game binary contains EA Firemonkeys' internal developer cheat screen with 29
 
 1. **Download** `rr3_overlay.dylib` from the [v1.0-overlay release](../../releases/tag/v1.0-overlay)
 2. In Sideloadly, go to Advanced Options → Inject dylibs/frameworks → add the dylib
-3. Sideload with the dylib injected — a floating "RR3" button appears in-game
+3. Sideload with the dylib injected
+4. Wait ~11 seconds after launch — a floating "RR3" button appears
+5. Tap to open the debug panel; drag to reposition the button
 
 ### Notes
 
