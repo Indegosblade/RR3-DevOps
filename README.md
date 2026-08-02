@@ -6,12 +6,13 @@ Real Racing 3 was shut down by EA on March 31, 2026. This project brings it back
 
 ## Downloads
 
-All builds are available as [GitHub Release](../../releases) attachments. The game also requires a ~5.1 GB asset cache (see [Setup](#setup)).
+Each component is published as a separate GitHub Release with full install instructions:
 
-| Build | Description |
-|-------|-------------|
-| **rr3_4k.ipa** | Production build — 120fps, 4K quality via EDS profile override, ads removed, dead URLs patched. |
-| **rr3_overlay.dylib** | Debug overlay dylib — inject via Sideloadly for in-game debug flag toggles. |
+| Release | Asset | Size | Description |
+|---------|-------|------|-------------|
+| [**v1.0-4k**](../../releases/tag/v1.0-4k) | `rr3_4k_v2.ipa` | 1.3 GB | Production build — 120fps, 4K quality, ads removed, dead URLs patched |
+| [**v1.0-overlay**](../../releases/tag/v1.0-overlay) | `rr3_overlay.dylib` | 90 KB | Debug overlay — inject via Sideloadly for in-game debug flag toggles |
+| [**v1.0-cache**](../../releases/tag/v1.0-cache) | `Caches_ipastore.zip` (3 parts) | 5.1 GB | Game asset cache — required for offline play (tracks, cars, textures) |
 
 ## What's Patched
 
@@ -73,10 +74,20 @@ The game binary contains EA Firemonkeys' internal developer cheat screen with 29
 
 ### Steps
 
-1. **Download** the IPA from [Releases](../../releases)
-2. **Sideload** with Sideloadly — connect your device, select the IPA, sign with your Apple ID
-3. **Import cache** — download `Caches_ipastore.zip` from Releases, unzip, and copy the contents into the app's Documents folder via the Files app or 3uTools
-4. **Launch** — the game runs fully offline, no EA account required
+1. **Download the IPA** from the [v1.0-4k release](../../releases/tag/v1.0-4k)
+2. **Sideload** with [Sideloadly](https://sideloadly.io/) — connect your device, select the IPA, sign with your Apple ID
+3. **Download the cache** from the [v1.0-cache release](../../releases/tag/v1.0-cache) — download all 3 `.part` files
+4. **Reassemble the cache:**
+   - **Windows:** `copy /b Caches_ipastore.zip.part00+Caches_ipastore.zip.part01+Caches_ipastore.zip.part02 Caches_ipastore.zip`
+   - **macOS/Linux:** `cat Caches_ipastore.zip.part* > Caches_ipastore.zip`
+5. **Import cache** — unzip and copy the contents into the app's Documents folder via the Files app (enable File Sharing in Sideloadly) or 3uTools
+6. **Launch** — the game runs fully offline, no EA account required
+
+### Optional: Debug Overlay
+
+1. **Download** `rr3_overlay.dylib` from the [v1.0-overlay release](../../releases/tag/v1.0-overlay)
+2. In Sideloadly, go to Advanced Options → Inject dylibs/frameworks → add the dylib
+3. Sideload with the dylib injected — a floating "RR3" button appears in-game
 
 ### Notes
 
