@@ -11,7 +11,7 @@ Each component is published as a separate GitHub Release with full install instr
 | Release | Asset | Size | Description |
 |---------|-------|------|-------------|
 | [**v1.0-4k**](../../releases/tag/v1.0-4k) | `rr3_4k_v3.ipa` | 1.3 GB | Production build — 120fps, god-mode EDS quality, ads removed, dead URLs patched |
-| [**v1.0-overlay**](../../releases/tag/v1.0-overlay) | `rr3_overlay.dylib` | 124 KB | Debug overlay v2 — live tweakable browser, 847 engine variables, write verification |
+| [**v1.0-overlay**](../../releases/tag/v1.0-overlay) | `rr3_overlay.dylib` | 286 KB | Debug overlay v5 — 887 described tweakables, snapshot reset, three-finger hide |
 | [**v1.0-cache**](../../releases/tag/v1.0-cache) | `Caches_ipastore.zip` (3 parts) | 5.1 GB | Game asset cache — required for offline play (tracks, cars, textures) |
 
 ## What's Patched
@@ -52,11 +52,12 @@ The overlay dylib (`rr3_overlay.dylib`) provides a floating debug panel and live
 ### What it does
 
 - **8 debug flag toggles** with descriptions — ImGui overlay, Cheat Menu (Unlock All, Free Currency, Max Level, Skip Tutorial), Debug Render (wireframes, collision, physics), and 5 subsystem flags
-- **Live tweakable browser** — reads ~847 engine variables from the BSS vector at runtime, groups into 15 categories (AI, Camera, Car, Render, Physics, etc.)
+- **Live tweakable browser** — reads ~847 engine variables from the BSS vector at runtime, groups into 15+ categories (AI, Camera, Car, Suspension, Sound, Render, HDR, PBR, Lighting, NASCAR, Input, Shaders, etc.)
+- **887 functional descriptions** — every tweakable has a description explaining what it does, with directional hints for sliders (← less → more) and ON/OFF behavior for toggles. Long-press any entry to see it.
 - **Smart controls** — UISwitch for bools and bool-like ints, UISlider for numeric values. 20 negative patterns prevent numeric entries from getting toggles
 - **Write verification** — every change is read back through the live pointer and confirmed with a toast notification (green checkmark = verified, red = mismatch)
-- **Long-press info** — hold any tweakable to see its full name, type, current value, default, range, and memory address
-- **Per-category reset** — restores all values to compiled defaults
+- **Snapshot-based reset** — RESET restores values to what the game actually loaded, not compiled defaults. Per-category and global RESET ALL button in the main menu header
+- **Three-finger tap** — tap with three fingers anywhere to hide/show the entire overlay (button + panel)
 - **Diagnostic dump** — writes `Documents/tweakable_dump.txt` at startup with all entries categorized
 
 ### Developer Cheat Menu
@@ -98,6 +99,7 @@ The game binary contains EA Firemonkeys' internal developer cheat screen with 29
 3. Sideload with the dylib injected
 4. Wait ~11 seconds after launch — a floating "RR3" button appears
 5. Tap to open the debug panel; drag to reposition the button
+6. Three-finger tap anywhere to hide/show the overlay
 
 ### Notes
 
