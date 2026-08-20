@@ -1,0 +1,57 @@
+# IPAs — too large for git, hosted as GitHub Release attachments
+*.ipa
+
+# Game cache
+Caches_ipastore.zip
+
+# Extracted binary working files
+Payload/
+eds_decrypted/
+SATURN-ref/
+RealRacing3_4k
+Info_4k.plist
+
+# Compiled dylib (distributed via Releases)
+*.dylib
+
+# Python bytecode and local test output
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Editor and local environment files
+.vscode/
+.idea/
+.venv/
+venv/
+env/
+*.log
+
+# Xcode, signing, and device-generated artifacts
+DerivedData/
+build/
+*.xcarchive/
+*.xcuserstate
+*.xcworkspace/xcuserdata/
+*.xcodeproj/xcuserdata/
+*.mobileprovision
+*.provisionprofile
+*.p12
+*.cer
+tweakable_dump.txt
+
+# Internal tracking
+IPA_VERSIONS.md
+
+# Handoff notes (local only)
+HANDOFF.md
+
+# Raw teardown notes retained locally; public findings are distilled in docs/
+CRASH_ANALYSIS.md
+PATCHES.md
+
+# OS junk
+.DS_Store
+Thumbs.db

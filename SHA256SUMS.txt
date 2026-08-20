@@ -1,0 +1,7 @@
+# RR3 DevOps v1.0 GitHub Release assets
+# Values are GitHub's SHA-256 digests for the named uploaded assets.
+f73da1ec286dc36fe1bda8d4ff6c7d67fe844c741a67254d3e05bca38b69548f *RR3-DevOps-v1.0-Production-Quality.ipa
+88252a94103bd735f5271e3c09faf07bcfe972eefd6b440e68882eedd9581a61 *RR3-DevOps-v1.0-Developer-Harness.dylib
+002cebeae643a21b91471c850c965a1edc7e81bb215d7ef2a8cb4621dd89c4f5 *RR3-DevOps-v1.0-Asset-Cache.zip.part00
+1d72011d4df3fe8060945f9c53c04c6f18ff2001b9c7bebfd40bb0498eb4f5e0 *RR3-DevOps-v1.0-Asset-Cache.zip.part01
+721b80b79790af2f61cb4331e6df4eaa6a984398723413c3d2c81c93a1b8be25 *RR3-DevOps-v1.0-Asset-Cache.zip.part02

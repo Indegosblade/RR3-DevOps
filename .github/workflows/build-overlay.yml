@@ -1,0 +1,45 @@
+name: Build runtime harness
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [PUBLIC]
+    paths:
+      - 'overlay/**'
+      - '.github/workflows/build-overlay.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: macos-14
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Compile iOS harness
+        working-directory: overlay
+        run: |
+          output=RR3-DevOps-Developer-Harness.dylib
+          sdkroot="$(xcrun --sdk iphoneos --show-sdk-path)"
+          clang="$(xcrun --sdk iphoneos --find clang)"
+          "$clang" -arch arm64 -dynamiclib \
+            -framework UIKit -framework Foundation -framework CoreGraphics \
+            -isysroot "$sdkroot" \
+            -o "$output" rr3_overlay.m \
+            -install_name "@rpath/$output" \
+            -fobjc-arc -Os -miphoneos-version-min=15.0
+          file "$output"
+          otool -L "$output"
+          shasum -a 256 "$output" > "$output.sha256"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rr3-devops-developer-harness
+          path: |
+            overlay/RR3-DevOps-Developer-Harness.dylib
+            overlay/RR3-DevOps-Developer-Harness.dylib.sha256
+          if-no-files-found: error

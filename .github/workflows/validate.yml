@@ -1,0 +1,22 @@
+name: Validate repository
+
+on:
+  push:
+    branches: [master, PUBLIC]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  repository:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m py_compile build_4k_v3.py scripts/build_debug_v1.py scripts/generate_all_flags.py scripts/validate_repository.py
+      - run: python scripts/generate_all_flags.py --check
+      - run: python scripts/validate_repository.py

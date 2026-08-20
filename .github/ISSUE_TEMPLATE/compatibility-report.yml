@@ -1,0 +1,34 @@
+name: Compatibility report
+description: Record a reproducible installation, cache-import, or harness result.
+title: "[Compatibility]: "
+labels: [compatibility]
+body:
+  - type: markdown
+    attributes:
+      value: "Read docs/TROUBLESHOOTING.md first. Reports with the exact build and device help everyone."
+  - type: input
+    id: device
+    attributes:
+      label: Device model and iOS version
+      placeholder: "iPhone 17 Pro, iOS 26.0"
+    validations:
+      required: true
+  - type: dropdown
+    id: asset
+    attributes:
+      label: Asset or component
+      options: ["v1.0-4k IPA", "v1.0-cache", "v1.0-overlay", "Source build"]
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Exact steps and observed result
+      placeholder: "Include cache import status, whether the app relaunches, and whether the RR3 button appears."
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence
+      description: "Attach screenshots, logs, hashes, or a relevant tweakable_dump.txt excerpt. Remove personal data."

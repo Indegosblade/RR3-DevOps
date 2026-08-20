@@ -1,0 +1,26 @@
+name: Technical finding or documentation correction
+description: Submit a sourced reverse-engineering, attribution, or documentation result.
+title: "[Finding]: "
+labels: [research]
+body:
+  - type: dropdown
+    id: evidence-level
+    attributes:
+      label: Evidence level
+      options: ["Confirmed by source/disassembly", "Confirmed on device", "Inferred", "Unresolved"]
+    validations:
+      required: true
+  - type: textarea
+    id: finding
+    attributes:
+      label: Finding and method
+      placeholder: "State the exact build, address or component, method, and reproducible result."
+    validations:
+      required: true
+  - type: textarea
+    id: source
+    attributes:
+      label: Supporting evidence or attribution source
+      description: "Link a primary source, attach an excerpt, or explain how another researcher can reproduce it."
+    validations:
+      required: true

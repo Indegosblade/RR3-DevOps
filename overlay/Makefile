@@ -1,0 +1,19 @@
+# Compile with clang-16 and an iOS SDK (Xcode or standalone toolchain)
+# Target: arm64 dylib for injection via Sideloadly
+
+CLANG = clang-16
+SDK = /path/to/iPhoneOS.sdk
+OUT = RR3-DevOps-v1.0-Developer-Harness.dylib
+
+$(OUT): rr3_overlay.m
+	$(CLANG) -arch arm64 -dynamiclib \
+		-framework UIKit -framework Foundation -framework CoreGraphics \
+		-isysroot $(SDK) \
+		-o $(OUT) $< \
+		-install_name @rpath/$(OUT) \
+		-fobjc-arc -Os -miphoneos-version-min=15.0
+
+clean:
+	rm -f $(OUT)
+
+.PHONY: clean
