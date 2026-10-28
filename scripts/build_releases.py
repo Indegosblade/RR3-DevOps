@@ -1,4 +1,4 @@
-"""Build profile-free, ad-hoc v1.1 release IPAs using Python and zsign.
+"""Build profile-free, ad-hoc v1.2 release IPAs using Python and zsign.
 
 No certificate, private key, Apple account or device connection is accepted.
 Run from the repository with the unmodified researched source IPA.
@@ -67,7 +67,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--input', required=True, type=Path)
     parser.add_argument('--zsign', required=True, type=Path)
-    parser.add_argument('--output', type=Path, default=ROOT / 'release-dist')
+    parser.add_argument('--output', type=Path, default=ROOT / 'release-dist' / 'importer-v1.2')
     parser.add_argument('--deny-markers', type=Path, help='Local-only JSON marker array for the privacy audit')
     args = parser.parse_args()
     source = args.input.resolve()
@@ -77,7 +77,7 @@ def main():
     markers = json.loads(args.deny_markers.read_text()) if args.deny_markers else []
     records = []
     for mode, compatible in (('Production-Quality', False), ('SE-Compatibility', True)):
-        name = f'RR3-DevOps-v1.1-{mode}.ipa'
+        name = f'RR3-DevOps-v1.2-{mode}.ipa'
         destination = output / name
         if destination.exists():
             raise FileExistsError(f'Refusing to overwrite {destination}')

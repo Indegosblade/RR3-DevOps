@@ -174,6 +174,11 @@ def build(source_ipa, output_ipa, god_plist_path, *, se_compat=False):
         raise FileNotFoundError(f'EDS profile not found: {god_plist_path}')
 
     items, file_cache = load_source_ipa(source_ipa)
+    from importer_fix.patch import LIBRARY_PATH, patch_dylib, validate_config
+    importer_report = []
+    if LIBRARY_PATH in file_cache:
+        validate_config(plistlib.loads(file_cache['Payload/RealRacing3.app/Info.plist']))
+        file_cache[LIBRARY_PATH], importer_report = patch_dylib(file_cache[LIBRARY_PATH])
     with open(god_plist_path, 'rb') as profile:
         god_plist_plain = profile.read()
     god_plist_enc = eds_crypt(god_plist_plain)
@@ -197,6 +202,8 @@ def build(source_ipa, output_ipa, god_plist_path, *, se_compat=False):
     print(f'  Input IPA SHA-256: {file_sha256(source_ipa)}')
     print(f'  Verified final-build UUID: {SUPPORTED_MACHO_UUID.hex()}')
     print(f'  {len(PATCHES)} expected-byte-checked operations (zero debug patches)')
+    if importer_report:
+        print(f'  Inherited importer: save handoff repaired and 149 messages translated in {len(importer_report)} architecture slices')
 
     for offset, _expected, replacement, description in PATCHES:
         binary_data[offset:offset + len(replacement)] = replacement
@@ -227,7 +234,7 @@ def build(source_ipa, output_ipa, god_plist_path, *, se_compat=False):
 
     print(f'Done: {output_ipa}')
     print(f'Size: {os.path.getsize(output_ipa) / (1024 * 1024):.1f} MB')
-    print(f'Production builder completed: verified final build, {len(PATCHES) + len(gui_changes)} bounded operations, encrypted EDS profile.')
+    print(f'Production builder completed: verified final build, {len(PATCHES) + len(gui_changes)} bounded game operations, encrypted EDS profile.')
 
 
 def main(argv):
@@ -237,7 +244,7 @@ def main(argv):
     parser.add_argument('--se-compat', action='store_true', help='Opt in to the GUI asset-family adaptation credited to hefti')
     args = parser.parse_args(argv[1:])
     source_ipa = args.source_ipa
-    default_name = 'RR3-DevOps-v1.1-SE-Compatibility.ipa' if args.se_compat else 'RR3-DevOps-v1.1-Production-Quality.ipa'
+    default_name = 'RR3-DevOps-v1.2-SE-Compatibility.ipa' if args.se_compat else 'RR3-DevOps-v1.2-Production-Quality.ipa'
     output_ipa = args.output_ipa or default_name
     script_dir = os.path.dirname(os.path.abspath(__file__))
     start = time.time()
