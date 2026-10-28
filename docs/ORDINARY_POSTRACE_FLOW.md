@@ -63,7 +63,7 @@ The pending-result upsert matches an existing record using the field at record `
 
 The queued upload path calls upsert at `0x1003E9FB4`, then save with unload=false at `0x1003E9FCC`. The queue flush routine has one direct caller at `0x10027D9E8`, outside the EndRace task builder. Direct-call counts do not exclude indirect calls, and no per-frame flush loop was established.
 
-None of these findings establishes a `character.2.dat` transaction boundary. Ranking data, pending upload data and primary career progress must not be treated as interchangeable.
+None of these queue/ranking findings establishes a `character.2.dat` transaction boundary. The follow-up [primary-save trace](PRIMARY_SAVE_BOUNDARY.md) identifies the selected EndRace task's deferred save request and the distinct serializer/writer path. Its task predicate can report complete before any save dispatch; storage durability and complete main-loop ordering remain unverified. Ranking data, pending upload data and primary career progress must not be treated as interchangeable.
 
 ## Queue scheduling is tied to screen entry, not a proven update retry
 
@@ -127,7 +127,7 @@ The event probe executes the guarded **original activation tail, neutral-state f
 
 ## Next bounded work
 
-1. Resolve the request-manager implementation and callback delivery/ownership guarantees, including whether a new queue entry can be added while a request is pending.
+1. Use the follow-up [request-delivery trace](REQUEST_DELIVERY_FLOW.md), which resolves the concrete manager chain and demonstrates that accepted records can be added while a batch is pending. Callback thread identity, cancellation synchronization and durable queue generations still require stronger evidence before changing rewrite policy.
 2. Map successful/failed finalization to a durable queue generation before changing rewrite policy; preserve loaded/logical-range transitions on failure.
 3. Measure which EndRace task is slow and the sizes/frequency of the two persistence files when runtime evidence becomes available. Do not infer an infinite retry or quadratic behavior from a single full-file serialization loop.
 4. Verify any future candidate through ordinary/local result display, retry/cancel behavior, race completion, offline cold restart and save/cache continuity.

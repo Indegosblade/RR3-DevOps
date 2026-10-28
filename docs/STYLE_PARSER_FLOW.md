@@ -67,4 +67,51 @@ The final malformed `lts_popup_backing_color` matches the global value, but ther
 
 This is a comparison of the complete repaired local document and preserved GlobalStyles resource, using host XML parsing only for extraction. The engine parser acceptance above comes from original engine instructions. Since other active local directories can contribute their own overrides, these global values are a baseline, not a measured screenshot's final color.
 
-The evidence now supports an engine-level syntax/ingestion repair if this event directory is requested. It still does not establish that this historical event is reachable, that a particular screen consumes the affected colors, or that the repair explains reported black backgrounds. Those event and visual checks remain open.
+The evidence now supports an engine-level syntax/ingestion repair if this event directory is requested. It still does not establish that this historical event is reachable, which of the statically identified consumers is active there, or that the repair explains reported black backgrounds. Those event and visual checks remain open.
+
+## Static consumers narrow the visual acceptance target
+
+A read-only follow-up decoded the original IPA's processed GUI members with
+`eds_crypt`, parsed fragments with `audit_visual_assets.gui_documents`, and
+matched exact attribute values for the seven differing color names. `Colour`
+definitions were excluded from consumer counts. No XML was repaired for this
+scan: the malformed local style remained a recorded parse failure. The scan
+limited each stored GUI member to 2 MiB and wrote only an ignored research
+report, `investigation/style_parser/colour-consumer-map.json`.
+
+| Color | Static attribute uses | Distinct consuming resources |
+|---|---:|---:|
+| `lts_main_color` | 208 | 124 |
+| `lts_secondary_color` | 171 | 79 |
+| `lts_tertiary_color` | 95 | 12 |
+| `lts_white_label` | 589 | 105 |
+| `lts_title_backing_color` | 13 | 12 |
+| `lts_main_menu_gradient_color` | 1 | 1 |
+| `lts_eventcard_unlock_text` | 3 | 1 |
+
+The union contains 171 consuming resources. These are shared palette references
+across historical layouts, not 171 affected Mazda screens. In this IPA, the
+Mazda event directory itself contains only `LocalStyles.gui`; its layout
+selection must therefore be resolved separately rather than inferred from an
+event-specific layout filename.
+
+Concrete common consumers include:
+
+- `limited_time_series/common/ltd_timed_series_landing_banner_foursquare.gui`:
+  one `GuiImageWithColor` reads `lts_main_menu_gradient_color`.
+- `limited_time_series/common/ltd_timed_series_reward_popup.gui`:
+  a `GuiImageWithColor` reads `lts_title_backing_color`.
+- `limited_time_series/common/ltd_timed_series_event_item.gui`:
+  three `GuiLabel` nodes read `lts_eventcard_unlock_text`.
+
+Their original encrypted member SHA-256 values are respectively
+`2666e357e88f9d72cf3a16dc8e455381e12ffbb7c1ddd056918d198f80182a8e`,
+`b38d6f7a3d4b14b880cfe67c474954dd7d52a9b5384f4435e223d87d96eba9c2` and
+`0e682f5849d386f7b1fdd8714f40d0c48a228d41aaff53c98949e600483ffc7f`.
+
+This gives concrete banner, popup and event-card elements to inspect if the
+event can be reached. The repaired palette darkens the two cited backing
+colors relative to their global white defaults; failure of this file is not
+evidence that a texture disappeared or that a reported screen became black.
+Other local overrides, runtime replacement, blending and event selection
+remain outside this host attribute mapping.

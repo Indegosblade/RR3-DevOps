@@ -55,7 +55,7 @@ These are reproduction targets for future screen-specific checks, not confirmed 
 
 `PostRaceBackground.gui` references `rewards/post_race_sky_burn.png`, available in all three GUI families. Its blend mode is `Translucent Color Multiply`. Changing that mode without a rendering trace would alter presentation rather than establish a missing-resource fix.
 
-The SpeedRush loading/post-race layouts use `quests/speedrush/loading/load_screen_speedrush.png`, which is available in the high-resolution family. No decoded GUI file contains a literal `.mp4` filename or `SpeedRush_TV_commercial.mp4`. `IntroScreen_ItemVideo.gui` has generic `BTN_WATCH_YES`, `BTN_WATCH_NO` and `BTN_CONTINUE` controls; it does not identify the playback target. The missing movie's consuming runtime code still needs tracing in [issue #16](https://github.com/Indegosblade/RR3-DevOps/issues/16).
+The SpeedRush loading/post-race layouts use `quests/speedrush/loading/load_screen_speedrush.png`, which is available in the high-resolution family. No decoded GUI file contains a literal `.mp4` filename or `SpeedRush_TV_commercial.mp4`. `IntroScreen_ItemVideo.gui` has generic `BTN_WATCH_YES`, `BTN_WATCH_NO` and `BTN_CONTINUE` controls; it does not identify the playback target. Follow-up [content recovery](MISSING_CONTENT_RECOVERY.md) locates the exact movie filename in the decoded jobs table near Speedrush career/intro/offer records. That static association does not establish current event eligibility or runtime watch/skip/return behavior in [issue #16](https://github.com/Indegosblade/RR3-DevOps/issues/16).
 
 ## One real XML syntax defect
 
@@ -74,7 +74,7 @@ After decryption, its final `Colour` element is missing `/>` before the closing 
 | Original encrypted resource | `3af680491c7073f47271a4ed2efe1d23117d7b67bf2e4b205322cde4537c549a` | 1,073 bytes |
 | Experimental repaired resource | `cd69b876f3d5e353426486913b367a02a79264e8a1793a99bf5912be6f5f94e4` | 1,075 bytes |
 
-The actual preserved resource was passed through the guarded repair and decrypted again; strict XML parsing succeeded. Both published v1.1 IPA variants contain this same guarded resource and produce the same repaired hash. This is a demonstrated **syntax repair**, not a demonstrated black-background or gameplay fix. Whether the engine tolerates the original syntax, loads this historical event's style file, or presents a visible defect is unknown.
+The actual preserved resource was passed through the guarded repair and decrypted again; strict XML parsing succeeded. Both published v1.1 IPA variants contain this same guarded resource and produce the same repaired hash. This is a demonstrated **syntax repair**, not a demonstrated black-background or gameplay fix. Follow-up engine execution, described below, establishes rejection of the original syntax; historical event selection and visible effects remain unverified.
 
 The initial comparison found the same final `lts_popup_backing_color` value in GlobalStyles, but that was insufficient to infer whole-file neutrality. A subsequent [original-engine parser/loader probe](STYLE_PARSER_FLOW.md) proved that the original file is rejected and all 12 local color overrides are skipped; seven differ from GlobalStyles. The repaired file is accepted and reaches style ingestion. Rendered event behavior and a connection to the reported black backgrounds remain unverified.
 

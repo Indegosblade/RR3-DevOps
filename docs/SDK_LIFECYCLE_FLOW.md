@@ -159,6 +159,13 @@ There is no demonstrated connection to a particular black screen, Time Trial
 delay or CPU/disk report. The emulated SDK calls are mocks, not network, UI or
 gameplay validation.
 
+The follow-up [consumer and cache trace](REMOTE_CONFIG_CONSUMERS.md) identifies
+32 direct calls covering 22 keys, including frame-rate and unlock policy, and
+the SDK's separate nominal 30-second initial local-database wait. Suppressing
+fetch retains that local wait and can leave fresh and existing installations
+with different active/default values. Complete dynamic/script coverage and
+runtime effects remain unresolved.
+
 Acceptance requires separate-copy checks for cold start with and without prior
 configuration, config-dependent menus/events, the reported operation, race
 completion, offline restart and save continuity, plus timing/network/storage
@@ -196,8 +203,11 @@ The poll reads the manager at global `0x103251f08` and game object at global
 task_done = !(manager.byte_0x1b4 & 1) && (game.byte_0x141 & 1)
 ```
 
-The meaning and producer of the game-state bit at `+0x141` remain unresolved.
-It must not be forced true or described as a confirmed fade-complete flag.
+The meaning and all later writers of the game-state bit at `+0x141` remain
+unresolved. The follow-up [ad-state ownership trace](AD_STATE_OWNERSHIP.md)
+identifies its initializer: a little-endian halfword store initializes this
+byte to one. It must not be forced true or described as a confirmed
+fade-complete flag.
 Original-byte emulation covers all four valid Boolean combinations, the start
 helper's two outcomes, null/no-fill modal input with both existing latch states,
 and the close callback. The no-fill path does not arm the latch, does not clear
@@ -213,7 +223,8 @@ case; the complete provider-to-modal error/cancel route has not been proven.
 An actually displayed modal also needs normal cleanup ownership preserved.
 
 No unconditional task-complete, latch-clear, fade bypass or readiness patch is
-proposed. Further work should identify the game-state bit's producer and an
-actual provider/error path that leaves a scheduled modal pending, then reproduce
-that transition. With no affected screen or device trace, treating this task as
+proposed. Further work should identify the game-state bit's later writers and
+an actual provider/error path that leaves a scheduled modal pending, then
+reproduce that transition. The ad-state follow-up proves the normal button-close
+route, not every provider failure route. With no affected screen or device trace, treating this task as
 the cause of the accepted black backgrounds would exceed the evidence.
