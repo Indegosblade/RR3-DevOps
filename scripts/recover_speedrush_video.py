@@ -87,8 +87,18 @@ def recover(destination, *, reader=None):
         data = archive.read(info)  # Reads the complete member and validates ZIP CRC.
     if len(data) != EXPECTED_BYTES or hashlib.md5(data).hexdigest() != EXPECTED_MD5:
         raise ValueError('Candidate does not match the preserved iOS manifest')
-    with destination.open('xb') as output:
-        output.write(data)
+    created = False
+    try:
+        with destination.open('xb') as output:
+            created = True
+            output.write(data)
+    except BaseException:
+        if created:
+            try:
+                destination.unlink(missing_ok=True)
+            except OSError:
+                pass  # Preserve the original write/close failure.
+        raise
     return {'source_page': SOURCE_PAGE, 'archive_url': ARCHIVE_URL,
             'archive_bytes': ARCHIVE_BYTES, 'member': MEMBER,
             'bytes': len(data), 'md5': EXPECTED_MD5,

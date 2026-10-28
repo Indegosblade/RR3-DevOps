@@ -216,11 +216,22 @@ def recover_atlases(ipa_path, cache_path, destination, *, reader=None):
                     continue
                 raise FileExistsError('Refusing to overwrite an atlas or provenance record')
             output.parent.mkdir(parents=True, exist_ok=True)
-            with output.open('xb') as stream:
-                stream.write(stored)
-            with sidecar.open('x', encoding='utf-8') as stream:
-                json.dump(provenance, stream, indent=2)
-                stream.write('\n')
+            created = []
+            try:
+                with output.open('xb') as stream:
+                    created.append(output)
+                    stream.write(stored)
+                with sidecar.open('x', encoding='utf-8') as stream:
+                    created.append(sidecar)
+                    json.dump(provenance, stream, indent=2)
+                    stream.write('\n')
+            except BaseException:
+                for created_path in reversed(created):
+                    try:
+                        created_path.unlink(missing_ok=True)
+                    except OSError:
+                        pass  # Preserve the original write/close failure.
+                raise
             recovered.append(provenance)
     return {**validation, 'recovered': recovered, 'range_bytes_read': source.transferred,
             'range_requests': source.requests, 'range_budget_bytes': MAX_TOTAL,

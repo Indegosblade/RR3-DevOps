@@ -119,6 +119,89 @@ class AssetTransportTests(unittest.TestCase):
                 recover_atlases(ipa, cache, output, reader=reader_for(remote, budget=1))
             self.assertFalse(output.exists())
 
+    @patch('scripts.trace_asset_transport.validate_existing',
+           return_value={'codec_validation_complete': True})
+    def test_failed_asset_or_provenance_write_or_close_removes_only_current_pair(self, _validation):
+        for target_kind, phase, error in (
+                ('asset', 'write', OSError('injected asset disk full')),
+                ('asset', 'close', OSError('injected asset close failure')),
+                ('provenance', 'write', OSError('injected provenance disk full')),
+                ('provenance', 'close', OSError('injected provenance close failure')),
+                ('provenance', 'write', KeyboardInterrupt('injected interruption'))):
+            with self.subTest(target=target_kind, phase=phase), tempfile.TemporaryDirectory() as directory:
+                ipa, cache, output, remote = self.fixture(directory)
+                before = {path: path.read_bytes() for path in (ipa, cache)}
+                asset = output / TARGETS[1]
+                sidecar = asset.with_name(asset.name + '.provenance.json')
+                failing_path = asset if target_kind == 'asset' else sidecar
+                original_open = Path.open
+
+                class FailingOutput:
+                    def __init__(self, stream):
+                        self.stream = stream
+
+                    def __enter__(self):
+                        return self
+
+                    def write(self, data):
+                        result = self.stream.write(data[:1] if phase == 'write' else data)
+                        if phase == 'write':
+                            raise error
+                        return result
+
+                    def __exit__(self, *_):
+                        self.stream.close()
+                        if phase == 'close':
+                            raise error
+
+                def failing_open(path, *args, **kwargs):
+                    stream = original_open(path, *args, **kwargs)
+                    return FailingOutput(stream) if path == failing_path else stream
+
+                with patch.object(Path, 'open', failing_open):
+                    with self.assertRaises(type(error)) as caught:
+                        recover_atlases(ipa, cache, output, reader=reader_for(remote))
+                self.assertIs(caught.exception, error)
+                self.assertFalse(asset.exists())
+                self.assertFalse(sidecar.exists())
+                retained = output / TARGETS[0]
+                retained_sidecar = retained.with_name(retained.name + '.provenance.json')
+                self.assertTrue(retained.is_file())
+                self.assertTrue(retained_sidecar.is_file())
+                retained_before = retained.read_bytes(), retained_sidecar.read_bytes()
+                report = recover_atlases(ipa, cache, output, reader=reader_for(remote))
+                self.assertTrue(report['recovered'][0]['already_verified_local'])
+                self.assertEqual((retained.read_bytes(), retained_sidecar.read_bytes()), retained_before)
+                self.assertEqual(len(report['recovered']), 3)
+                self.assertTrue(asset.is_file())
+                self.assertTrue(sidecar.is_file())
+                for path, data in before.items():
+                    self.assertEqual(path.read_bytes(), data)
+
+    @patch('scripts.trace_asset_transport.validate_existing',
+           return_value={'codec_validation_complete': True})
+    def test_exclusive_create_failure_preserves_other_writers_asset_or_provenance(self, _validation):
+        for target_kind in ('asset', 'provenance'):
+            with self.subTest(target=target_kind), tempfile.TemporaryDirectory() as directory:
+                ipa, cache, output, remote = self.fixture(directory)
+                asset = output / TARGETS[0]
+                sidecar = asset.with_name(asset.name + '.provenance.json')
+                occupied = asset if target_kind == 'asset' else sidecar
+                original_open = Path.open
+
+                def occupied_open(path, *args, **kwargs):
+                    if path == occupied:
+                        with original_open(path, 'wb') as stream:
+                            stream.write(b'other writer content')
+                    return original_open(path, *args, **kwargs)
+
+                with patch.object(Path, 'open', occupied_open):
+                    with self.assertRaises(FileExistsError):
+                        recover_atlases(ipa, cache, output, reader=reader_for(remote))
+                self.assertEqual(occupied.read_bytes(), b'other writer content')
+                if target_kind == 'provenance':
+                    self.assertFalse(asset.exists())
+
     @patch('scripts.trace_asset_transport.trace_binary', return_value={})
     def test_local_validation_checks_ipa_and_cache_and_preserves_failure(self, _trace):
         with tempfile.TemporaryDirectory() as directory:

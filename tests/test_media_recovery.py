@@ -115,6 +115,83 @@ class RecoveryTests(unittest.TestCase):
                     recovery.recover(output, reader=io.BytesIO(data))
             self.assertFalse(output.exists())
 
+    def test_output_write_close_or_interrupt_failure_is_removed_and_retry_succeeds(self):
+        for phase, error in (('write', OSError('injected disk full')),
+                             ('close', OSError('injected close failure')),
+                             ('write', KeyboardInterrupt('injected interruption'))):
+            with self.subTest(phase=phase, error=type(error).__name__), tempfile.TemporaryDirectory() as directory:
+                output = Path(directory) / 'video.mp4'
+                archive = self.archive(self.media)
+                original_open = Path.open
+
+                class FailingOutput:
+                    def __enter__(self):
+                        self.stream = original_open(output, 'xb')
+                        return self
+
+                    def write(self, data):
+                        self.stream.write(data[:4] if phase == 'write' else data)
+                        if phase == 'write':
+                            raise error
+
+                    def __exit__(self, *_):
+                        self.stream.close()
+                        if phase == 'close':
+                            raise error
+
+                with patch.object(recovery, 'EXPECTED_BYTES', len(self.media)), \
+                        patch.object(recovery, 'EXPECTED_MD5', hashlib.md5(self.media).hexdigest()):
+                    with patch.object(Path, 'open', return_value=FailingOutput()):
+                        with self.assertRaises(type(error)) as caught:
+                            recovery.recover(output, reader=io.BytesIO(archive))
+                    self.assertIs(caught.exception, error)
+                    self.assertFalse(output.exists())
+                    recovery.recover(output, reader=io.BytesIO(archive))
+                self.assertEqual(output.read_bytes(), self.media)
+
+    def test_exclusive_create_failure_preserves_output_created_by_another_writer(self):
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory) / 'video.mp4'
+            original_open = Path.open
+
+            def occupied_output(path, *args, **kwargs):
+                with original_open(path, 'wb') as stream:
+                    stream.write(b'other writer content')
+                return original_open(path, *args, **kwargs)
+
+            with patch.object(recovery, 'EXPECTED_BYTES', len(self.media)), \
+                    patch.object(recovery, 'EXPECTED_MD5', hashlib.md5(self.media).hexdigest()), \
+                    patch.object(Path, 'open', occupied_output):
+                with self.assertRaises(FileExistsError):
+                    recovery.recover(output, reader=io.BytesIO(self.archive(self.media)))
+            self.assertEqual(output.read_bytes(), b'other writer content')
+
+    def test_cleanup_failure_does_not_replace_original_write_error(self):
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory) / 'video.mp4'
+            original_open = Path.open
+            error = OSError('original disk full')
+
+            class FailingOutput:
+                def __enter__(self):
+                    self.stream = original_open(output, 'xb')
+                    return self
+
+                def write(self, data):
+                    self.stream.write(data[:4])
+                    raise error
+
+                def __exit__(self, *_):
+                    self.stream.close()
+
+            with patch.object(recovery, 'EXPECTED_BYTES', len(self.media)), \
+                    patch.object(recovery, 'EXPECTED_MD5', hashlib.md5(self.media).hexdigest()), \
+                    patch.object(Path, 'open', return_value=FailingOutput()), \
+                    patch.object(Path, 'unlink', side_effect=PermissionError('cleanup denied')):
+                with self.assertRaises(OSError) as caught:
+                    recovery.recover(output, reader=io.BytesIO(self.archive(self.media)))
+            self.assertIs(caught.exception, error)
+
 
 if __name__ == '__main__':
     unittest.main()
