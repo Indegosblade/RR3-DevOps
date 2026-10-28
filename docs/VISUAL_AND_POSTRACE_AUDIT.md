@@ -1,14 +1,14 @@
 # Offline visual and post-race investigation
 
-Initial static audit performed 28 October 2026. No device was connected and no game/cache input was modified. Follow-up work prepared two isolated experimental helpers; neither is enabled in the production builder or included in a new release.
+Initial static audit performed 28 October 2026. No device was connected and no original game/cache input was modified. Follow-up work prepared isolated experimental helpers and recovered a manifest-matching original media asset. These experiments are not enabled in the production builder or included in a new release.
 
 ## Tracking and follow-up work
 
-- [Black backgrounds #13](https://github.com/Indegosblade/RR3-DevOps/issues/13) and [optional assets #15](https://github.com/Indegosblade/RR3-DevOps/issues/15): [full texture-stream and decoded-layout findings](VISUAL_ASSET_FINDINGS.md).
+- [Black backgrounds #13](https://github.com/Indegosblade/RR3-DevOps/issues/13) and [optional assets #15](https://github.com/Indegosblade/RR3-DevOps/issues/15): [full texture-stream and decoded-layout findings](VISUAL_ASSET_FINDINGS.md), the [normal background control/resource trace](BACKGROUND_RESOURCE_FLOW.md), and [three exact-match optional texture recoveries](OPTIONAL_ASSET_RECOVERY.md). Companion atlas metadata is still missing, so those recovered pages do not yet restore the complete event.
 - [Malformed event styles #17](https://github.com/Indegosblade/RR3-DevOps/issues/17): exact-resource-guarded experimental XML repair, with no demonstrated runtime visual effect yet.
-- [Time Trial delays #14](https://github.com/Indegosblade/RR3-DevOps/issues/14): [request/completion trace and experimental timeout plan](POSTRACE_CONTROL_FLOW.md).
-- [SDK dependencies #5](https://github.com/Indegosblade/RR3-DevOps/issues/5): [reproducible dependency audit and initialization boundaries](SDK_DEPENDENCY_AUDIT.md).
-- [Missing promotional video #16](https://github.com/Indegosblade/RR3-DevOps/issues/16): [recovery attempts and candidate verification](MISSING_CONTENT_RECOVERY.md).
+- [Time Trial delays #14](https://github.com/Indegosblade/RR3-DevOps/issues/14): [tournament request/completion trace and experimental timeout plan](POSTRACE_CONTROL_FLOW.md), plus [ordinary result routing and persistence failure probes](ORDINARY_POSTRACE_FLOW.md).
+- [SDK dependencies #5](https://github.com/Indegosblade/RR3-DevOps/issues/5): [reproducible dependency audit and initialization boundaries](SDK_DEPENDENCY_AUDIT.md), followed by the [live SDK lifecycle trace](SDK_LIFECYCLE_FLOW.md).
+- [Missing promotional video #16](https://github.com/Indegosblade/RR3-DevOps/issues/16): [verified original-content recovery and separate cache restoration](MISSING_CONTENT_RECOVERY.md).
 
 ## Reported symptoms
 
@@ -47,7 +47,7 @@ Input identities, rehashed during this audit:
 | Weekly Time Trial high-resolution manifest paths present | 6 / 6 |
 | Quest-stage background high-resolution manifest paths present | 101 / 101 |
 
-The only absent base-ledger resource is `SpeedRush_TV_commercial.mp4`. Its manifest records transport/stored sizes of 6,925,760 bytes and hash `7f9560c4abf3665fd4bd62e01aa9f689`. No candidate was recovered. [Hefti's missing-video issue](https://github.com/hefti/RR3-offline-fix-for-iPhone-SE3/issues/1) does not establish a link to the black backgrounds.
+The only absent base-ledger resource in the unchanged source cache is `SpeedRush_TV_commercial.mp4`. Its manifest records transport/stored sizes of 6,925,760 bytes and hash `7f9560c4abf3665fd4bd62e01aa9f689`. The later recovery work found an exact match, verified a full host decode and built/read back a separate cache candidate adding only that file. See the recovery record above. [Hefti's missing-video issue](https://github.com/hefti/RR3-offline-fix-for-iPhone-SE3/issues/1) does not establish a link to the black backgrounds.
 
 The union of all optional manifests declares **909 absent `2048x1536` GUI paths**, including **70** paths in older Time Trial competition/event groups. These are not the normal six-file weekly Time Trial group. An inventory across all historical events and device families is not a list of mandatory startup resources. An entirely absent atlas is also outside the available-atlas page check above.
 
