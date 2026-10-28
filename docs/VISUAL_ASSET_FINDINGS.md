@@ -76,7 +76,7 @@ After decryption, its final `Colour` element is missing `/>` before the closing 
 
 The actual preserved resource was passed through the guarded repair and decrypted again; strict XML parsing succeeded. Both published v1.1 IPA variants contain this same guarded resource and produce the same repaired hash. This is a demonstrated **syntax repair**, not a demonstrated black-background or gameplay fix. Whether the engine tolerates the original syntax, loads this historical event's style file, or presents a visible defect is unknown.
 
-`gui/processed/GlobalStyles.gui` already defines `lts_popup_backing_color` with the same `221,221,221` values. That is important negative evidence: a working global-style fallback could make this local syntax repair visually neutral. No repair is promoted on the assumption that this missing delimiter explains the accepted black backgrounds.
+The initial comparison found the same final `lts_popup_backing_color` value in GlobalStyles, but that was insufficient to infer whole-file neutrality. A subsequent [original-engine parser/loader probe](STYLE_PARSER_FLOW.md) proved that the original file is rejected and all 12 local color overrides are skipped; seven differ from GlobalStyles. The repaired file is accepted and reaches style ingestion. Rendered event behavior and a connection to the reported black backgrounds remain unverified.
 
 ### Isolated experimental candidate
 

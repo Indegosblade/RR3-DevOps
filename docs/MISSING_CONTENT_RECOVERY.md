@@ -38,6 +38,8 @@ A full local candidate build retained all **59,926** original archive entries an
 
 The multi-gigabyte candidate was deleted after verification. Only the small recovered movie and compact provenance remain under ignored local research storage. The original cache, release assets and device installations were not changed. Import/playback and the consuming event still need verification before release.
 
+A later [combined registered candidate](CACHE_REGISTRATION_FLOW.md) also adds six independently verified Hybrid Highway GUI files and their missing authentic receipts. The movie itself already has a valid receipt in the original ledger. These two writer modes are intentionally distinct: movie-only restoration can append a file without changing the ledger; optional content requires both payload and catalog-completion evidence.
+
 ### Static consuming-event association
 
 The movie filename occurs once in the decrypted `res/data/jobs.bin.nct`, at decoded offset `0x34A7F3`, preceded by its 27-byte string length. The encrypted table's SHA-256 is `2c0e5403d0be4a3baa3b89585ff43ea2a034b0e6d9cbb2bb8735f46034a5fc84`.

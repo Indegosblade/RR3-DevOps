@@ -2,7 +2,7 @@
 
 Tracking: [optional asset coverage #15](https://github.com/Indegosblade/RR3-DevOps/issues/15). This follows the [visual inventory](VISUAL_ASSET_FINDINGS.md) and [background/resource-flow trace](BACKGROUND_RESOURCE_FLOW.md).
 
-Three original texture-page byte sequences missing from the current iOS inputs were recovered on 28 October 2026. They came from the matching-version public preservation archives linked by [Project_RR3](https://viduxsh.github.io/Project_RR3/), and match the iOS manifest's exact filename, length and MD5. This is content recovery, not a demonstrated black-background fix or a complete event restoration.
+Three original texture-page byte sequences and their three companion iOS atlas metadata files were recovered on 28 October 2026. They came from matching-version public preservation archives linked by [Project_RR3](https://viduxsh.github.io/Project_RR3/). Texture bytes match the exact iOS filename, length and MD5; the later atlas recovery reproduces the original compressed transport hashes. This is content recovery, not a demonstrated black-background fix or a complete runtime event restoration.
 
 ## Verification rule
 
@@ -58,11 +58,11 @@ Verified bytes, per-file provenance and compact source reports remain only under
 
 No eligible candidate failed its hash or ZIP CRC, and no eligible candidate was deferred by the remaining budget. The exclusions are measured scope limits, not proof that all other assets are irrecoverable.
 
-## The Hybrid Highway event is still incomplete
+## Companion atlas recovery and the six-member HD GUI candidate
 
-The root, `splash/` and `large/` companion `sprites.ios.atlas` files remain absent from the working iOS inputs. Their recorded transport/stored lengths differ (264/418, 216/259 and 221/266 bytes respectively), so a raw Android atlas cannot be accepted just because it looks compatible. This pass did not recover or reconstruct those metadata files.
+The original working inputs still lack the root, `splash/` and `large/` companion `sprites.ios.atlas` files. A follow-up [transport trace](ASSET_TRANSPORT_FLOW.md) established the actual representation: `FMASZ1` followed by a zlib stream. Reconstructing this representation with level 6 matched all 1,541 existing compressed iOS atlas members. The three recovered metadata candidates then reproduced the exact iOS transport sizes/hashes without editing their XML. This is hash-based identity proof, not filename-only renaming.
 
-The three texture pages alone do not supply the missing sprite bindings, establish event eligibility or validate layout/touch behavior. The original inventory remains unchanged until a separate restoration candidate explicitly inserts verified content and records its acceptance. No current cache, release IPA, save or device was modified.
+Together with the pages, the six recovered resources cover the declared high-resolution GUI subset. A [separate registered cache candidate](CACHE_REGISTRATION_FLOW.md) now contains those files and six authentic transport-MD5 receipts, plus the recovered SpeedRush video. Host inventory and receipt comparison pass. The lower-resolution catalog entries, event eligibility, other required content, layout/touch behavior and rendering are not established by this subset. Original inputs, current releases and devices remain unchanged.
 
 ## Reproduce within a combined budget
 
