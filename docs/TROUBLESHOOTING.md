@@ -4,6 +4,8 @@ This project is provided as-is, but most useful failures can be narrowed down wi
 
 ## The game asks to download assets after import
 
+On SE-class small screens, a completed cache import can still leave the game selecting mostly absent `960x640` GUI assets. The v1.1 SE Compatibility variant coordinates GUI selection with the available high-resolution family. Read [v1.1 build selection and evidence](COMPATIBILITY_V1_1.md) before changing variants. This does not supply missing optional-event assets or establish compatibility for every iPad.
+
 1. Confirm that every cache part was downloaded and reassembled without an error.
 2. Open the upstream importer with one three-finger double-tap, then import the finished `Caches_ipastore.zip`; do not point it at an already-extracted folder.
 3. Wait for import to finish, force-quit the app, then reopen it.
@@ -12,6 +14,8 @@ This project is provided as-is, but most useful failures can be narrowed down wi
 If it still requests data, report the exact request size, device model, iOS version, IPA/cache release names, and whether the import showed completion.
 
 ## The game crashes on launch
+
+The old v1.0 IPA has a reproducible URL-literal defect on the tested iOS 15.5 runtime. Both v1.1 variants correct it. A generic `SIGABRT` alone does not establish the same cause in another report.
 
 - Verify that the IPA was sideloaded cleanly and has not expired.
 - Retry once without the optional overlay. This separates base-package issues from harness-injection issues.

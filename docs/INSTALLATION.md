@@ -6,10 +6,12 @@ This guide describes the community-preserved iOS workflow used by the RR3 DevOps
 
 - An iPhone or iPad with sufficient free storage for the IPA and imported cache.
 - A macOS or Windows computer for sideloading. [Sideloadly](https://sideloadly.io/) is the documented tool used by the upstream public guide.
-- The [v1.0-4k](https://github.com/Indegosblade/RR3-DevOps/releases/tag/v1.0-4k) IPA and every part from [v1.0-cache](https://github.com/Indegosblade/RR3-DevOps/releases/tag/v1.0-cache).
+- A [v1.1 Production Quality](https://github.com/Indegosblade/RR3-DevOps/releases/tag/v1.1-4k) IPA, or the explicit [v1.1 SE Compatibility](https://github.com/Indegosblade/RR3-DevOps/releases/tag/v1.1-se) variant for the documented GUI-family mismatch, and every part from [v1.0-cache](https://github.com/Indegosblade/RR3-DevOps/releases/tag/v1.0-cache).
 - Optionally, `RR3-DevOps-v1.0-Developer-Harness.dylib` from [v1.0-overlay](https://github.com/Indegosblade/RR3-DevOps/releases/tag/v1.0-overlay).
 
 The confirmed RR3 DevOps device test is an iPhone 17 Pro on iOS 26.0. The upstream public guide identifies iPad and iPhone 12-or-newer as its documented target class. This is not a guarantee for every device; report compatibility results with details.
+
+The combined SE correction was locally confirmed loading on an SE 2 running iOS 15.5. Use the default Production Quality build first on an untested iPad. See [v1.1 evidence and limits](COMPATIBILITY_V1_1.md). The release IPAs contain ad-hoc signatures and no personal provisioning profiles; **your sideloading tool must re-sign them with your account**.
 
 ## Gesture reference
 
@@ -41,7 +43,7 @@ Keep the finished `Caches_ipastore.zip` accessible in the Files app. Do not extr
 ## 2. Sideload the IPA
 
 1. Open Sideloadly and connect the target device.
-2. Select `RR3-DevOps-v1.0-Production-Quality.ipa` from [v1.0-4k](https://github.com/Indegosblade/RR3-DevOps/releases/tag/v1.0-4k).
+2. Select `RR3-DevOps-v1.1-Production-Quality.ipa`, or the SE Compatibility variant chosen above.
 3. Sign and sideload using the normal account workflow.
 4. Launch the installed app once.
 
@@ -52,8 +54,8 @@ The package uses bundle identifier `com.ea.realracing3.inc`. Replacing a build w
 The upstream community package includes a local-file cache importer. Open it with one three-finger double-tap, then:
 
 1. Select the first import function and choose `Caches_ipastore.zip`.
-3. Wait for import to complete.
-4. Force-quit the app and relaunch it.
+2. Wait for import to complete.
+3. Force-quit the app and relaunch it.
 
 If the game still requests data after a completed import, use [Troubleshooting](TROUBLESHOOTING.md) and provide the exact request size, device, iOS version, IPA/cache release names, and observed importer behavior.
 

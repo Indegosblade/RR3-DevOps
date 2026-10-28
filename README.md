@@ -41,7 +41,7 @@ The central research contribution is the documented runtime data model: BSS vect
 ```mermaid
 flowchart LR
     A["Community-preserved<br/>offline iOS package"] --> B["RR3 DevOps<br/>production builder"]
-    B --> C["4K-profile IPA<br/>13 bounded binary operations"]
+    B --> C["4K-profile IPA<br/>18 bounded binary operations"]
     C --> D["Optional UIKit<br/>runtime harness"]
     D --> E["Live tweakable registry<br/>BSS vector + 0x78-byte entries"]
 ```
@@ -73,7 +73,9 @@ The offline-capable iOS package, local cache-import mechanism, and asset cache e
 
 | Release | Asset | Function |
 |---|---|---|
-| [v1.0-4k](https://github.com/Indegosblade/RR3-DevOps/releases/tag/v1.0-4k) | `RR3-DevOps-v1.0-Production-Quality.ipa` | Production quality profile: 120 FPS, ad suppression, known retired-endpoint rewrites, and custom EDS profile |
+| [v1.1-4k](https://github.com/Indegosblade/RR3-DevOps/releases/tag/v1.1-4k) | `RR3-DevOps-v1.1-Production-Quality.ipa` | Default package with the URL-literal startup correction; re-sign required |
+| [v1.1-se](https://github.com/Indegosblade/RR3-DevOps/releases/tag/v1.1-se) | `RR3-DevOps-v1.1-SE-Compatibility.ipa` | Startup correction plus GUI asset-family compatibility adapted from hefti; re-sign required |
+| [v1.0-4k](https://github.com/Indegosblade/RR3-DevOps/releases/tag/v1.0-4k) | `RR3-DevOps-v1.0-Production-Quality.ipa` | Legacy package retained for reference; predates the startup correction |
 | [v1.0-overlay](https://github.com/Indegosblade/RR3-DevOps/releases/tag/v1.0-overlay) | `RR3-DevOps-v1.0-Developer-Harness.dylib` | Optional runtime developer harness |
 | [v1.0-cache](https://github.com/Indegosblade/RR3-DevOps/releases/tag/v1.0-cache) | `RR3-DevOps-v1.0-Asset-Cache.zip` parts | Required asset cache for the documented local-play workflow |
 
@@ -83,6 +85,8 @@ Download integrity: verify release assets against [SHA256SUMS.txt](SHA256SUMS.tx
 
 ## Compatibility
 
+- **v1.1 startup correction:** fixes five URL-literal length fields that caused a reproducible startup abort on an iPhone SE 2 running iOS 15.5. The legacy v1.0 IPA does not include this correction. See [v1.1 evidence and build selection](docs/COMPATIBILITY_V1_1.md).
+- **Optional SE compatibility:** the SE build coordinates the atlas override and GUI manifest filter to use cached `2048×1536` assets. It is adapted from [hefti's work](third_party/hefti/NOTICE.md), and the combined SE 2 candidate was confirmed loading locally. It is an explicit `--se-compat` option, not the default for untested iPads.
 - **Confirmed RR3 DevOps test device:** iPhone 17 Pro (A19), iOS 26.0.
 - **Harness deployment target:** iOS 15.0. This is a compiler target, not a universal compatibility claim.
 - **Upstream package target class:** iPad and iPhone 12-or-newer, subject to asset-resolution compatibility and community verification.
@@ -99,6 +103,8 @@ The “4K” release label identifies the elevated device profile. It does not c
 | [Technical report](docs/TECHNICAL_REPORT.md) | Methods, evidence, and validated findings |
 | [How RR3 DevOps was built](WORKFLOW.md) | Plain-English account of the engineering workflow and hardware validation |
 | [Production binary patches](docs/BINARY_PATCHES.md) | Authoritative `build_4k_v3.py` patch set |
+| [v1.1 compatibility and validation](docs/COMPATIBILITY_V1_1.md) | Build selection, reproducible defects, test evidence and limits |
+| [Third-party notices](THIRD_PARTY_NOTICES.md) | Hefti attribution and retained licenses |
 | [EDS format and quality profile](docs/EDS_FORMAT.md) | Cipher analysis and configuration constraints |
 | [Internal developer systems](docs/INTERNAL_DEVELOPER_SYSTEMS.md) | Runtime registry, counts, and developer-system status |
 | [All runtime tweakables and research flags](docs/ALL_FLAGS.md) | Complete 887-description reference, grouped by overlay menu |

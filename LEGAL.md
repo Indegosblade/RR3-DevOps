@@ -4,6 +4,8 @@ RR3 DevOps is an independent community project. It is not affiliated with, endor
 
 ## What this repository licenses
 
+The optional GUI compatibility component has its own retained MIT notice from hefti and rr3 contributors. See [Third-party notices](THIRD_PARTY_NOTICES.md).
+
 The original source code and original documentation authored for RR3 DevOps are released under the standard [MIT License](LICENSE). That license does not grant rights in *Real Racing 3*, its executable, artwork, audio, tracks, cars, assets, trademarks, or any other material owned by their respective rights holders.
 
 ## What the releases contain
