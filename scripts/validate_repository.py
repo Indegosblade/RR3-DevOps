@@ -18,7 +18,7 @@ def fail(message):
 
 def check_python():
     ok = True
-    for path in (ROOT / 'build_4k_v3.py', ROOT / 'scripts' / 'build_debug_v1.py'):
+    for path in (*sorted(ROOT.glob('*.py')), *sorted((ROOT / 'scripts').glob('*.py'))):
         try:
             ast.parse(path.read_text(encoding='utf-8'), filename=str(path))
         except SyntaxError as exc:
@@ -45,8 +45,11 @@ def check_eds_profile():
 def check_checksums():
     lines = (ROOT / 'SHA256SUMS.txt').read_text(encoding='utf-8').splitlines()
     assets = [line for line in lines if line and not line.startswith('#')]
-    if len(assets) != 5 or any(not SHA_LINE.fullmatch(line) for line in assets):
-        return fail('SHA256SUMS.txt must contain five standard SHA-256 asset lines')
+    if len(assets) < 5 or any(not SHA_LINE.fullmatch(line) for line in assets):
+        return fail('SHA256SUMS.txt must retain the legacy assets and standard SHA-256 lines')
+    names = [line.split(' *', 1)[1] for line in assets]
+    if len(names) != len(set(names)):
+        return fail('SHA256SUMS.txt contains duplicate asset names')
     return True
 
 
@@ -64,7 +67,11 @@ def check_all_flags_reference():
 
 def check_markdown_links():
     ok = True
-    for path in ROOT.rglob('*.md'):
+    names = subprocess.check_output(
+        ['git', 'ls-files', '--cached', '--others', '--exclude-standard', '-z'],
+        cwd=ROOT, stderr=subprocess.DEVNULL,
+    ).decode().split('\0')
+    for path in (ROOT / name for name in names if name.endswith('.md')):
         text = path.read_text(encoding='utf-8')
         for target in MARKDOWN_LINK.findall(text):
             target = target.split('#', 1)[0].strip('<>')

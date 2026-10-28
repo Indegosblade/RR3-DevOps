@@ -4,9 +4,11 @@ This is the authoritative reference for `build_4k_v3.py`, the RR3 DevOps product
 
 ## Scope
 
-The script applies **13** binary operations: seven Objective-C stub replacements and six endpoint rewrites. It also encrypts and injects the custom EDS profile. It deliberately excludes debug-gate activation, BuildType changes, and conditional-branch changes.
+The default build applies **18** binary operations: seven Objective-C stub replacements, six endpoint rewrites, and five URL-literal length corrections. It also encrypts and injects the custom EDS profile. It excludes debug-gate activation and BuildType changes. The explicit `--se-compat` variant adds two guarded GUI-filter operations for **20** total; those are described below.
 
-The production builder accepts re-signed or repackaged copies of the researched final build, but refuses a different executable before it writes. It verifies the final build's Mach-O UUID, checks that every offset is in range, and compares the original bytes at all 13 locations. It does not use an IPA-wide hash or bundle identifier, because those can change during normal re-signing and packaging.
+The production builder accepts re-signed or repackaged copies of the researched final build, but refuses a different executable before it writes. It verifies the final build's Mach-O UUID, checks that every offset is in range, and compares the original bytes at all 18 locations. It does not use an IPA-wide hash or bundle identifier, because those can change during normal re-signing and packaging.
+
+The legacy **v1.0-4k IPA predates the five length corrections**. Both v1.1 IPA variants include them. The v1.0 checksums remain intact for historical verification.
 
 ## Stub replacements
 
@@ -36,6 +38,26 @@ Known retired endpoints are replaced with `http://127.0.0.1/`, padded to the ori
 | `0x02743860` | `firemonkeys.com.au/news/embednews/index.php?nGameId=` |
 
 This identifies the known rewrites; it does not claim that no other network attempt can occur in every runtime condition.
+
+## Foundation URL-literal lengths
+
+Five rewritten endpoints are backed by constant `NSString`/CFString records. Their explicit 64-bit character counts must also become **17**, the length of `http://127.0.0.1/`. Updating only the text bytes leaves the NUL padding inside the logical NSString even though a C-string reader would stop at the first NUL.
+
+| Length-field file offset | Endpoint | Original count | Corrected count |
+|---|---|---:|---:|
+| `0x02D51378` | geoservice | 57 | 17 |
+| `0x02D56898` | ccs putData | 47 | 17 |
+| `0x02D610F8` | director-int | 36 | 17 |
+| `0x02D61118` | director-stage | 38 | 17 |
+| `0x02D61138` | syn-dir | 31 | 17 |
+
+**Confirmed on device:** on an iPhone SE 2 running iOS 15.5, the shipped padded geoservice string produced a nil `NSURL`; copying its `absoluteString` through `+[NSString stringWithString:]` raised `NSInvalidArgumentException`. A clean v1.0 production build aborted after about two seconds in that call path. A native Foundation probe reproduced the failure with the old count and succeeded with 17; the five-field correction allowed the game process to survive the previous startup failure, including a subsequent launch after cache import. This does not establish that every older device, game mode, or separately reported crash has the same cause.
+
+The builder checks the original count bytes before writing each correction. `scripts/validate_url_literals.py` independently discovers CFString records in a built IPA and rejects redirected literals whose logical contents still include NUL padding. The published v1.0 IPA is retained as a failing regression control.
+
+## Optional SE GUI compatibility
+
+The SE option is a separate supported compatibility variant, not a debug-activation experiment. It checks the original instruction sequence at `0x00680B24`, zero padding at `0x00003800`, executable UUID and header separation before applying a 40-byte GUI-only detour. It then sets the fallback GUI atlas family to `2048x1536` and adds the direct SE 2 profile. See [hefti attribution](../third_party/hefti/NOTICE.md), `se_compat.py`, and [v1.1 validation](COMPATIBILITY_V1_1.md).
 
 ## Non-production experiments
 

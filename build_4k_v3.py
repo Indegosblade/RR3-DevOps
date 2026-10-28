@@ -1,15 +1,17 @@
 """
 RR3 DevOps production builder for the researched final iOS binary.
 
-Usage: python build_4k_v3.py <original.ipa> [output.ipa]
+Usage: python build_4k_v3.py <original.ipa> [output.ipa] [--se-compat]
   eds_god.plist must be in the same directory as this script.
 
 Before changing anything, the builder verifies the main executable's Mach-O
 UUID and the original bytes at every patch location. Re-signed or repackaged
 copies remain usable; a different executable is refused.
 """
+import argparse
 import hashlib
 import os
+import plistlib
 import struct
 import sys
 import time
@@ -58,8 +60,11 @@ def make_stub(imm):
         0x52800000 | (imm << 5), 0xD65F03C0, 0xD503201F, 0xD503201F)
 
 
+LOOPBACK_URL = b'http://127.0.0.1/'
+
+
 def url_rewrite(original_url):
-    replacement = b'http://127.0.0.1/'
+    replacement = LOOPBACK_URL
     if len(replacement) > len(original_url):
         raise ValueError('replacement URL is longer than the original')
     return replacement + b'\x00' * (len(original_url) - len(replacement))
@@ -84,6 +89,13 @@ PATCHES = [
     (0x026CB1A2, b'https://prod.geo.gluops.com/geoservice/v2/publishdetailed', url_rewrite(b'https://prod.geo.gluops.com/geoservice/v2/publishdetailed'), 'URL: geoservice'),
     (0x026E787D, b'https://prod-rest.ccs.gluops.com/api/v1/putData', url_rewrite(b'https://prod-rest.ccs.gluops.com/api/v1/putData'), 'URL: ccs putData'),
     (0x02743860, b'http://firemonkeys.com.au/news/embednews/index.php?nGameId=', url_rewrite(b'http://firemonkeys.com.au/news/embednews/index.php?nGameId='), 'URL: firemonkeys news'),
+    # NSString literals retain a separate character count. NUL padding preserves
+    # file layout, but must not remain part of their logical URL on older iOS.
+    (0x02D51378, struct.pack('<Q', 57), struct.pack('<Q', len(LOOPBACK_URL)), 'CFString: geoservice URL length'),
+    (0x02D56898, struct.pack('<Q', 47), struct.pack('<Q', len(LOOPBACK_URL)), 'CFString: ccs putData URL length'),
+    (0x02D610F8, struct.pack('<Q', 36), struct.pack('<Q', len(LOOPBACK_URL)), 'CFString: director-int URL length'),
+    (0x02D61118, struct.pack('<Q', 38), struct.pack('<Q', len(LOOPBACK_URL)), 'CFString: director-stage URL length'),
+    (0x02D61138, struct.pack('<Q', 31), struct.pack('<Q', len(LOOPBACK_URL)), 'CFString: syn-dir URL length'),
 ]
 
 
@@ -153,7 +165,7 @@ def load_source_ipa(path):
     return items, cache
 
 
-def build(source_ipa, output_ipa, god_plist_path):
+def build(source_ipa, output_ipa, god_plist_path, *, se_compat=False):
     if os.path.abspath(source_ipa) == os.path.abspath(output_ipa):
         raise ValueError('output IPA must not overwrite the input IPA')
     if os.path.exists(output_ipa):
@@ -168,6 +180,18 @@ def build(source_ipa, output_ipa, god_plist_path):
     if eds_crypt(god_plist_enc) != god_plist_plain:
         raise RuntimeError('EDS round-trip verification failed')
 
+    profiles = {EDS_FALLBACK: god_plist_enc, EDS_NEW_DEVICE: god_plist_enc}
+    if se_compat:
+        profile = plistlib.loads(god_plist_plain)
+        if profile.get('PLIST_IDENTIFIER') != 'iPad6,8' or profile.get('GUI_ATLAS_OVERRIDE') != '':
+            raise ValueError('SE compatibility requires the researched iPad6,8 profile with no atlas override')
+        compatible = dict(profile, GUI_ATLAS_OVERRIDE='2048x1536')
+        encoded = eds_crypt(plistlib.dumps(compatible))
+        if plistlib.loads(eds_crypt(encoded)) != compatible:
+            raise RuntimeError('SE EDS round-trip verification failed')
+        profiles[EDS_FALLBACK] = encoded
+        profiles[EDS_DIR + 'iPhone12,8.plist'] = encoded
+
     binary_data = bytearray(file_cache[BINARY_PATH])
     print(f'Building {output_ipa}')
     print(f'  Input IPA SHA-256: {file_sha256(source_ipa)}')
@@ -178,36 +202,47 @@ def build(source_ipa, output_ipa, god_plist_path):
         binary_data[offset:offset + len(replacement)] = replacement
         print(f'  [0x{offset:08x}] {description}')
 
+    gui_changes = []
+    if se_compat:
+        from se_compat import patch
+        patched, gui_changes = patch(bytes(binary_data))
+        binary_data = bytearray(patched)
+        for change in gui_changes:
+            print(f'  [{change["offset"]}] {change["description"]}')
+
     print(f'  EDS: {len(god_plist_plain)} plaintext bytes -> {len(god_plist_enc)} encrypted bytes')
-    added_new_device = EDS_NEW_DEVICE in file_cache
     with zipfile.ZipFile(output_ipa, 'x', zipfile.ZIP_DEFLATED) as output:
         for item in items:
             if item.filename == BINARY_PATH:
                 output.writestr(item, bytes(binary_data))
-            elif item.filename in (EDS_FALLBACK, EDS_NEW_DEVICE):
-                output.writestr(item, god_plist_enc)
+            elif item.filename in profiles:
+                output.writestr(item, profiles[item.filename])
             else:
                 output.writestr(item, file_cache[item.filename])
-        if not added_new_device:
-            new_item = zipfile.ZipInfo(EDS_NEW_DEVICE)
-            new_item.compress_type = zipfile.ZIP_DEFLATED
-            output.writestr(new_item, god_plist_enc)
+        for name, data in profiles.items():
+            if name not in file_cache:
+                new_item = zipfile.ZipInfo(name)
+                new_item.compress_type = zipfile.ZIP_DEFLATED
+                output.writestr(new_item, data)
 
     print(f'Done: {output_ipa}')
     print(f'Size: {os.path.getsize(output_ipa) / (1024 * 1024):.1f} MB')
-    print('Production builder completed: verified final build, 13 safe-direction operations, encrypted EDS profile.')
+    print(f'Production builder completed: verified final build, {len(PATCHES) + len(gui_changes)} bounded operations, encrypted EDS profile.')
 
 
 def main(argv):
-    if len(argv) not in (2, 3):
-        print(f'Usage: {argv[0]} <original.ipa> [output.ipa]')
-        return 1
-    source_ipa = argv[1]
-    output_ipa = argv[2] if len(argv) == 3 else 'RR3-DevOps-v1.0-Production-Quality.ipa'
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('source_ipa', help='Original, unmodified researched final-build IPA')
+    parser.add_argument('output_ipa', nargs='?')
+    parser.add_argument('--se-compat', action='store_true', help='Opt in to the GUI asset-family adaptation credited to hefti')
+    args = parser.parse_args(argv[1:])
+    source_ipa = args.source_ipa
+    default_name = 'RR3-DevOps-v1.1-SE-Compatibility.ipa' if args.se_compat else 'RR3-DevOps-v1.1-Production-Quality.ipa'
+    output_ipa = args.output_ipa or default_name
     script_dir = os.path.dirname(os.path.abspath(__file__))
     start = time.time()
     try:
-        build(source_ipa, output_ipa, os.path.join(script_dir, 'eds_god.plist'))
+        build(source_ipa, output_ipa, os.path.join(script_dir, 'eds_god.plist'), se_compat=args.se_compat)
     except (FileExistsError, FileNotFoundError, ValueError, OSError, zipfile.BadZipFile) as exc:
         print(f'Build refused: {exc}', file=sys.stderr)
         return 1

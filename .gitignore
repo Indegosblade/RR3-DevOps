@@ -55,3 +55,16 @@ PATCHES.md
 # OS junk
 .DS_Store
 Thumbs.db
+
+# Local research, device tests and release staging (never public source)
+RR3-Resurrection/
+investigation/
+RR3_REVIEW_*.txt
+dist/
+release-dist/
+.release-work/
+*.ips
+*.crash
+*.pfx
+*.key
+*.pem
