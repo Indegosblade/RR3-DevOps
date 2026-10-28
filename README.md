@@ -104,6 +104,7 @@ The “4K” release label identifies the elevated device profile. It does not c
 | [How RR3 DevOps was built](WORKFLOW.md) | Plain-English account of the engineering workflow and hardware validation |
 | [Production binary patches](docs/BINARY_PATCHES.md) | Authoritative `build_4k_v3.py` patch set |
 | [v1.1 compatibility and validation](docs/COMPATIBILITY_V1_1.md) | Build selection, reproducible defects, test evidence and limits |
+| [Offline visual and post-race investigation](docs/VISUAL_AND_POSTRACE_AUDIT.md) | Asset/SDK audits, open issues and isolated experimental helpers; runtime validation pending |
 | [Third-party notices](THIRD_PARTY_NOTICES.md) | Hefti attribution and retained licenses |
 | [EDS format and quality profile](docs/EDS_FORMAT.md) | Cipher analysis and configuration constraints |
 | [Internal developer systems](docs/INTERNAL_DEVELOPER_SYSTEMS.md) | Runtime registry, counts, and developer-system status |
