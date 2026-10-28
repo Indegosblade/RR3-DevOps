@@ -64,6 +64,8 @@ The original working inputs still lack the root, `splash/` and `large/` companio
 
 Together with the pages, the six recovered resources cover the declared high-resolution GUI subset. A [separate registered cache candidate](CACHE_REGISTRATION_FLOW.md) now contains those files and six authentic transport-MD5 receipts, plus the recovered SpeedRush video. Host inventory and receipt comparison pass. The lower-resolution catalog entries, event eligibility, other required content, layout/touch behavior and rendering are not established by this subset. Original inputs, current releases and devices remain unchanged.
 
+A subsequent [content-hash scan of the original local archives](LOCAL_ASSET_RECOVERY.md) recovered 47 further pages from differently named source members. That produces authenticated candidates for 53 of the original 909 missing HD paths. No further compressed atlas matched locally, so receipt registration, companion metadata and complete event validation for those additional pages remain separate work. The seven-resource registered candidate above has not silently expanded to include these partial collections.
+
 ## Reproduce within a combined budget
 
 The following pair uses hard caps summing to 128 MiB. Inventory is performed before member recovery in each run. Omitting `--recover` performs only the inventory phase.

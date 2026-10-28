@@ -84,7 +84,9 @@ The decrypted `gui/processed/TimeTrialTournamentAggregateScreen.gui` agrees with
 
 GUI decoding uses the existing `eds_crypt()` transformation in memory; no decoded layouts are added to source.
 
-The request-manager virtual implementation still needs tracing to establish whether callbacks are always deferred, whether offline requests fail immediately, and what retry behavior occurs below this helper. The helper arms/resets its pending state after starting both handles; a synchronous callback would need separate analysis, not an assumed race. In particular, a cached synchronous path exists in `LeaderBoardSync::Start`, but this constructor supplies a negative cache key and therefore takes its non-cache path.
+[Request-delivery analysis](REQUEST_DELIVERY_FLOW.md) shows that normal completion is update-drained but ManagerV34 can synchronously reject a server-listed operation. The helper arms/resets its pending state after starting both handles; original helper probes lose early error state when that reset executes. This is a separate path from the cached synchronous `LeaderBoardSync::Start` branch, which this constructor avoids with a negative cache key.
+
+The [lifetime probe](INLINE_REJECTION_FLOW.md) also shows deletion before the bridge's late ID store and provides a limited experimental guard for initially-zero request IDs. Neither observation establishes actual rejection-set contents or the cause of the reported delay. A full helper repair must also preserve construction reentrancy and callback ownership; neither the timeout experiment nor the fresh-ID guard fixes that state machine.
 
 ## Ordinary/local leaderboard boundary
 

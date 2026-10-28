@@ -10,6 +10,10 @@ Initial static audit performed 28 October 2026. No device was connected and no o
 - [SDK dependencies #5](https://github.com/Indegosblade/RR3-DevOps/issues/5): [reproducible dependency audit](SDK_DEPENDENCY_AUDIT.md), [live SDK lifecycle](SDK_LIFECYCLE_FLOW.md), and [ad-state initialization and close ownership](AD_STATE_OWNERSHIP.md).
 - [Missing promotional video #16](https://github.com/Indegosblade/RR3-DevOps/issues/16): [verified original-content recovery and separate cache restoration](MISSING_CONTENT_RECOVERY.md).
 
+The [local content-hash recovery pass](LOCAL_ASSET_RECOVERY.md) recovered 47 additional texture pages under their original target paths, independently of source filenames. Together with Hybrid Highway, separate authenticated candidates cover 53 of the 909 absent HD declarations; 856 remain unresolved. This does not alter the preserved-input inventory or establish complete event rendering.
+
+The [end-to-end inline rejection probe](INLINE_REJECTION_FLOW.md) also demonstrates a conditional post-deletion ID store and a narrowly scoped fresh-ID experimental guard. It does not resolve the helper's lost early-error state, reused-request cases or real server rejection reachability.
+
 ## Reported symptoms
 
 - [Hefti's compatibility report](https://github.com/Indegosblade/RR3-DevOps/discussions/9#discussioncomment-18920203) describes perhaps one or two black backgrounds, without identifying the screens. [Upstream issue #2](https://github.com/hefti/RR3-offline-fix-for-iPhone-SE3/issues/2) leaves the cause unresolved.
