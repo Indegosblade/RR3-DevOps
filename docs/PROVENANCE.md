@@ -15,6 +15,11 @@ That guide documents the same basic flow used here: sideload the modified IPA, o
 
 The RR3 DevOps author encountered the preserved package through AppDB. AppDB is a discovery/source path, not evidence of original authorship.
 
+The later [importer change](IMPORTER_FIX.md) is limited to repairing its save
+application/restart handoff and translating the inherited interface into English.
+RR3 DevOps does not claim authorship of the original importer, file-assistant UI,
+ZIP backend or exporter. The upstream branding and support links are retained.
+
 ## RR3 DevOps's original work
 
 This repository adds and documents work performed for RR3 DevOps:
