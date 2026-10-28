@@ -10,9 +10,11 @@ Initial static audit performed 28 October 2026. No device was connected and no o
 - [SDK dependencies #5](https://github.com/Indegosblade/RR3-DevOps/issues/5): [reproducible dependency audit](SDK_DEPENDENCY_AUDIT.md), [live SDK lifecycle](SDK_LIFECYCLE_FLOW.md), and [ad-state initialization and close ownership](AD_STATE_OWNERSHIP.md).
 - [Missing promotional video #16](https://github.com/Indegosblade/RR3-DevOps/issues/16): [verified original-content recovery and separate cache restoration](MISSING_CONTENT_RECOVERY.md).
 
-The [local content-hash recovery pass](LOCAL_ASSET_RECOVERY.md) recovered 47 additional texture pages under their original target paths, independently of source filenames. Together with Hybrid Highway, separate authenticated candidates cover 53 of the 909 absent HD declarations; 856 remain unresolved. This does not alter the preserved-input inventory or establish complete event rendering.
+The [local content-hash recovery pass](LOCAL_ASSET_RECOVERY.md) recovered 47 additional texture pages under their original target paths, independently of source filenames. A [bounded companion-metadata search](COMPANION_ATLAS_RECOVERY.md) authenticated another 15 atlas targets. Together with Hybrid Highway, separate authenticated candidates cover 68 of the 909 absent HD declarations; 841 remain unresolved. Only Hybrid Highway has a complete recovered HD catalog. This does not alter the preserved-input inventory or establish complete event rendering.
 
 The [end-to-end inline rejection probe](INLINE_REJECTION_FLOW.md) also demonstrates a conditional post-deletion ID store and a narrowly scoped fresh-ID experimental guard. It does not resolve the helper's lost early-error state, reused-request cases or real server rejection reachability.
+
+A separate [two-phase helper candidate](HELPER_DELIVERY_REPAIR.md) preserves responses arriving during launch and defers their completion to the ordinary update. Controlled-Start tests demonstrate the state change without invoking completion during construction. Combined patch regions are reversible, but the combined candidate has not been executed through the concrete manager and complete UI body. Runtime relevance and platform execution remain open.
 
 ## Reported symptoms
 

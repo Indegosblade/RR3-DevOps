@@ -114,3 +114,8 @@ platform filter described in [cache registration](CACHE_REGISTRATION_FLOW.md).
 These 47 authenticated candidates do not establish receipt completeness,
 companion-atlas availability, event eligibility or a visible layout. Those are
 separate validation boundaries.
+
+Follow-up [companion recovery](COMPANION_ATLAS_RECOVERY.md) authenticated 15
+atlas targets for these pages from matching-version preservation metadata.
+That raises the separate recovered HD candidate inventory to 68 of 909 paths;
+the local-only rerun figures above remain its original measured result.
